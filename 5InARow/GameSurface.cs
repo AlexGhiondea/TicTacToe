@@ -65,6 +65,9 @@ namespace _5InARow
 
         private void GameSurface_Paint(object sender, PaintEventArgs e)
         {
+            e.Graphics.SmoothingMode = System.Drawing.Drawing2D.SmoothingMode.AntiAlias;
+            e.Graphics.TextRenderingHint = System.Drawing.Text.TextRenderingHint.ClearTypeGridFit;
+
             DrawGrid(Size, e.Graphics);
 
             // draw all the visual nodes
