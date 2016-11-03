@@ -156,8 +156,9 @@ namespace _5InARow
 
             int smallDiagCount = 1 + newInternalNode.CountOnDirection(NodeLocation.TopRight, newInternalNode.Value) + newInternalNode.CountOnDirection(NodeLocation.BottomLeft, newInternalNode.Value);
 
-            return colCount >= 5 || rowCount >= 5 || bigDiagCount >= 5 || smallDiagCount >= 5;
+            return colCount >= NeededForWin || rowCount >= NeededForWin || bigDiagCount >= NeededForWin || smallDiagCount >= NeededForWin;
         }
+        private const int NeededForWin = 5;
 
         private void RemovePreviousMove()
         {
