@@ -110,7 +110,7 @@ namespace _5InARow
                 VisualNode neighbourNode;
                 if (nodes.TryGetValue(neighborLocation, out neighbourNode))
                 {
-                    Debug.WriteLine($"{neighborLocation} in direction {value}");
+                    Debug.WriteLine($"Node {nodeKey} has node {neighborLocation} at {value}");
 
                     // add the existing node to the new node as neighbour
                     newInternalNode.AddNeighbour(neighbourNode.Node, value);
@@ -119,7 +119,7 @@ namespace _5InARow
                     NodeLocation reverseDirection = value.GetReverseDirection();
                     neighbourNode.Node.AddNeighbour(newInternalNode, reverseDirection);
 
-                    Debug.WriteLine($"Node {Constants.GetKey(neighbourNode.X, neighbourNode.Y)} has node {Constants.GetKey(x, y)} at {reverseDirection}.");
+                    Debug.WriteLine($"Node {Constants.GetKey(neighbourNode.X, neighbourNode.Y)} has node {nodeKey} at {reverseDirection}.");
                 }
             }
 
@@ -181,16 +181,13 @@ namespace _5InARow
 
         private bool HasNeighbours(int x, int y)
         {
-            for (int i = -1; i <= 1; i++)
+            foreach (NodeLocation value in Enum.GetValues(typeof(NodeLocation)))
             {
-                for (int j = -1; j <= 1; j++)
+                string neighborLocation = Constants.MapDirectionToComputation[value](x, y);
+                if (nodes.ContainsKey(neighborLocation))
                 {
-                    string testKey = Constants.GetKey(x + i, y + j);
-                    Debug.WriteLine(testKey);
-                    if (nodes.ContainsKey(testKey))
-                    {
-                        return true;
-                    }
+                    Debug.WriteLine($"Found neighbour at: {neighborLocation}");
+                    return true;
                 }
             }
             return false;
@@ -198,7 +195,7 @@ namespace _5InARow
 
         private void TicTacToe_Load(object sender, EventArgs e)
         {
-            lblNext.DataBindings.Add("Text", this, nameof(CurrentPlayer), false, DataSourceUpdateMode.OnPropertyChanged);
+            //lblNext.DataBindings.Add("Text", this, nameof(CurrentPlayer), false, DataSourceUpdateMode.OnPropertyChanged);
         }
 
         private void btnUndo_Click(object sender, EventArgs e)
@@ -220,12 +217,12 @@ namespace _5InARow
         {
             { NodeLocation.TopLeft,      (x,y)=>$"{GetKey(x - 1, y - 1)}" },
             { NodeLocation.BottomLeft,   (x,y)=>$"{GetKey(x - 1, y + 1)}" },
-            { NodeLocation.Left,         (x,y)=>$"{GetKey(x - 1, y)}" },
+            { NodeLocation.Left,         (x,y)=>$"{GetKey(x - 1, y    )}" },
             { NodeLocation.TopRight,     (x,y)=>$"{GetKey(x + 1, y - 1)}" },
             { NodeLocation.BottomRight,  (x,y)=>$"{GetKey(x + 1, y + 1)}" },
-            { NodeLocation.Right,        (x,y)=>$"{GetKey(x + 1, y)}" },
-            { NodeLocation.BottomCenter, (x,y)=>$"{GetKey(x, y + 1)}" },
-            { NodeLocation.TopCenter,    (x,y)=>$"{GetKey(x, y - 1)}" }
+            { NodeLocation.Right,        (x,y)=>$"{GetKey(x + 1, y    )}" },
+            { NodeLocation.BottomCenter, (x,y)=>$"{GetKey(x    , y + 1)}" },
+            { NodeLocation.TopCenter,    (x,y)=>$"{GetKey(x    , y - 1)}" }
         };
 
         public static NodeLocation GetReverseDirection(this NodeLocation nodeLocation)
@@ -252,16 +249,17 @@ namespace _5InARow
             // scale the coordinates.
             int TopX = X * gridSize;
             int TopY = Y * gridSize;
-            //g.DrawRectangle(Pens.Black, TopX, TopY, gridSize, gridSize);
 
             // draw the node's value
-            var stringSize = g.MeasureString($"{Node.Value}", new Font("Consolas", 30));
+            var stringSize = g.MeasureString($"{Node.Value}", s_gameFont);
 
             var left = TopX + (gridSize - stringSize.Width) / 2;
             var top = TopY + (gridSize - stringSize.Height) / 2;
 
-            g.DrawString($"{Node.Value}", new Font("Consolas", 30), Brushes.Black, left, top);
+            g.DrawString($"{Node.Value}", s_gameFont, Brushes.Black, left, top);
         }
+
+        private readonly Font s_gameFont = new Font("Consolas", 30);
     }
 
     public class InternalNode
@@ -293,9 +291,6 @@ namespace _5InARow
         {
             Neighbours.Add(new NeighbourLocation() { Location = location, Node = node });
         }
-
-        public static InternalNode CreateX() => new InternalNode(TicTacToeValue.x);
-        public static InternalNode CreateO() => new InternalNode(TicTacToeValue.o);
 
         internal void RemoveFromNeighbours()
         {
