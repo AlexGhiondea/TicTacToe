@@ -72,6 +72,12 @@ namespace _5InARow
             {
                 node.Draw(gridSize, e.Graphics);
             }
+
+            // draw the last one different
+            if (s_moves.Count > 0)
+            {
+                s_moves.Peek().Draw(gridSize, e.Graphics, last: true);
+            }
         }
 
         private void GameSurface_MouseDown(object sender, MouseEventArgs e)
@@ -246,6 +252,11 @@ namespace _5InARow
 
         public void Draw(int gridSize, Graphics g)
         {
+            Draw(gridSize, g, false);
+        }
+
+        internal void Draw(int gridSize, Graphics g, bool last)
+        {
             // scale the coordinates.
             int TopX = X * gridSize;
             int TopY = Y * gridSize;
@@ -256,7 +267,7 @@ namespace _5InARow
             var left = TopX + (gridSize - stringSize.Width) / 2;
             var top = TopY + (gridSize - stringSize.Height) / 2;
 
-            g.DrawString($"{Node.Value}", s_gameFont, Brushes.Black, left, top);
+            g.DrawString($"{Node.Value}", s_gameFont, last ? Brushes.Blue : Brushes.Black, left, top);
         }
 
         private readonly Font s_gameFont = new Font("Consolas", 30);
