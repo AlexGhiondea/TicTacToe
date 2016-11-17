@@ -1,4 +1,4 @@
-﻿namespace _5InARow
+﻿namespace TicTacToe
 {
     partial class TicTacToe
     {

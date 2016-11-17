@@ -10,7 +10,7 @@ using System.Text;
 using System.Threading.Tasks;
 using System.Windows.Forms;
 
-namespace _5InARow
+namespace TicTacToe
 {
     public partial class TicTacToe : Form
     {
@@ -215,7 +215,7 @@ namespace _5InARow
                 int beforeX = SnapToClosest(_mouseDownLocation.X);
                 int beforeY = SnapToClosest(_mouseDownLocation.Y);
 
-                TranslateAllMoves(x-beforeX, y-beforeY);
+                TranslateAllMoves(x - beforeX, y - beforeY);
 
                 Refresh();
             }
@@ -257,39 +257,12 @@ namespace _5InARow
             // check if we moved more than 1 grid size
             if (_mouseDownLocation != default(Point))
             {
-                if (Math.Abs(e.Location.X - _mouseDownLocation.X) > (gridSize/2) ||
-                    Math.Abs(e.Location.Y - _mouseDownLocation.Y) > (gridSize/2))
+                if (Math.Abs(e.Location.X - _mouseDownLocation.X) > (gridSize / 2) ||
+                    Math.Abs(e.Location.Y - _mouseDownLocation.Y) > (gridSize / 2))
                 {
                     _isDragOperation = true;
                 }
             }
-        }
-    }
-
-    public static class Constants
-    {
-        public static string GetKey(int x, int y)
-        {
-            return $"{x + 1}_{y + 1}"; //adding 1 to offset the dictionary key by 1 to match the visual cues.
-        }
-
-        public const int DirectionDifference = 100;
-
-        public static readonly Dictionary<NodeLocation, Func<int, int, string>> MapDirectionToComputation = new Dictionary<NodeLocation, Func<int, int, string>>()
-        {
-            { NodeLocation.TopLeft,      (x,y)=>$"{GetKey(x - 1, y - 1)}" },
-            { NodeLocation.BottomLeft,   (x,y)=>$"{GetKey(x - 1, y + 1)}" },
-            { NodeLocation.Left,         (x,y)=>$"{GetKey(x - 1, y    )}" },
-            { NodeLocation.TopRight,     (x,y)=>$"{GetKey(x + 1, y - 1)}" },
-            { NodeLocation.BottomRight,  (x,y)=>$"{GetKey(x + 1, y + 1)}" },
-            { NodeLocation.Right,        (x,y)=>$"{GetKey(x + 1, y    )}" },
-            { NodeLocation.BottomCenter, (x,y)=>$"{GetKey(x    , y + 1)}" },
-            { NodeLocation.TopCenter,    (x,y)=>$"{GetKey(x    , y - 1)}" }
-        };
-
-        public static NodeLocation GetReverseDirection(this NodeLocation nodeLocation)
-        {
-            return (nodeLocation + ((int)nodeLocation > DirectionDifference ? -1 : 1) * DirectionDifference);
         }
     }
 
@@ -331,58 +304,49 @@ namespace _5InARow
 
     public class InternalNode
     {
+        Dictionary<NodeLocation, InternalNode> _neighbours = new Dictionary<NodeLocation, InternalNode>();
+
         public int CountOnDirection(NodeLocation direction, TicTacToeValue value)
         {
             // starting from this direction count how many there are
-            var nextNode = Neighbours.FirstOrDefault(x => x.Location == direction && x.Node.Value == value);
-
-            if (nextNode == null)
+            InternalNode nextNode;
+            if (!_neighbours.TryGetValue(direction, out nextNode)) 
             {
                 return 0;
             }
-            else
-            {
-                return 1 + nextNode.Node.CountOnDirection(direction, value);
-            }
+
+            return 1 + nextNode.CountOnDirection(direction, value);
         }
 
         public TicTacToeValue Value;
-        private List<NeighbourLocation> Neighbours;
         public InternalNode(TicTacToeValue value)
         {
             Value = value;
-            Neighbours = new List<NeighbourLocation>();
+            //Neighbours = new List<NeighbourLocation>();
         }
 
         public void AddNeighbour(InternalNode node, NodeLocation location)
         {
-            Neighbours.Add(new NeighbourLocation() { Location = location, Node = node });
+            _neighbours[location] = node;
         }
 
         internal void RemoveFromNeighbours()
         {
             // go through each of it's neighbours and remove this node from their list.
-            foreach (var node in Neighbours)
+            foreach (var node in _neighbours.Values)
             {
-                node.Node.RemoveNode(this);
+                node.RemoveNode(this);
             }
         }
 
         internal void RemoveNode(InternalNode node)
         {
-            var NodeAtLocation = Neighbours.FirstOrDefault(x => x.Node == node);
-            if (NodeAtLocation != null)
+            var nodeAtLocation = _neighbours.FirstOrDefault(x => x.Value == node);
+            if (nodeAtLocation.Value != null)
             {
-                Neighbours.Remove(NodeAtLocation);
+                _neighbours.Remove(nodeAtLocation.Key);
             }
         }
-
-        private class NeighbourLocation
-        {
-            public NodeLocation Location;
-            public InternalNode Node;
-        }
-
     }
 
     public enum NodeLocation
