@@ -85,13 +85,10 @@ namespace _5InARow
 
         private void GameSurface_MouseDown(object sender, MouseEventArgs e)
         {
-            // put a visual node
-
-            int x = SnapToClosest(e.X);
-            int y = SnapToClosest(e.Y);
-
-            AddMove(x, y);
+            _mouseDownLocation = e.Location;
+            _isDragOperation = false;
         }
+        private Point _mouseDownLocation = default(Point);
 
         Dictionary<string, VisualNode> nodes = new Dictionary<string, VisualNode>();
 
@@ -202,14 +199,70 @@ namespace _5InARow
             return false;
         }
 
-        private void TicTacToe_Load(object sender, EventArgs e)
-        {
-            //lblNext.DataBindings.Add("Text", this, nameof(CurrentPlayer), false, DataSourceUpdateMode.OnPropertyChanged);
-        }
-
         private void btnUndo_Click(object sender, EventArgs e)
         {
             RemovePreviousMove();
+        }
+
+        private void GameSurface_MouseUp(object sender, MouseEventArgs e)
+        {
+            int x = SnapToClosest(e.X);
+            int y = SnapToClosest(e.Y);
+            if (_isDragOperation)
+            {
+                // calculate the new offset based on the drag
+                // the offset is calculated in gridSize increments.
+                int beforeX = SnapToClosest(_mouseDownLocation.X);
+                int beforeY = SnapToClosest(_mouseDownLocation.Y);
+
+                TranslateAllMoves(x-beforeX, y-beforeY);
+
+                Refresh();
+            }
+            else
+            {
+                // put a visual node
+
+                Debug.WriteLine($"Trying to add new node at offsetX:{x}, offsetY:{y}");
+
+                AddMove(x, y);
+            }
+            _isDragOperation = false;
+        }
+
+        private void TranslateAllMoves(int offsetX, int offsetY)
+        {
+            Debug.WriteLine($"Translating by offsetX:{offsetX}, offsetY:{offsetY}");
+
+            // need to re-map the locations based on the new offset.
+            Dictionary<string, VisualNode> newNodeDict = new Dictionary<string, VisualNode>();
+            foreach (var key in nodes.Keys)
+            {
+                var splitKey = key.Split('_');
+                int newX = int.Parse(splitKey[0]) + offsetX;
+                int newY = int.Parse(splitKey[1]) + offsetY;
+
+                var newKey = $"{newX}_{newY}";
+                Debug.WriteLine($"Remapping {key} to {newKey}");
+                newNodeDict.Add(newKey, nodes[key]);
+                nodes[key].X += offsetX;
+                nodes[key].Y += offsetY;
+            }
+            nodes = newNodeDict;
+        }
+
+        private bool _isDragOperation = false;
+        private void GameSurface_MouseMove(object sender, MouseEventArgs e)
+        {
+            // check if we moved more than 1 grid size
+            if (_mouseDownLocation != default(Point))
+            {
+                if (Math.Abs(e.Location.X - _mouseDownLocation.X) > (gridSize/2) ||
+                    Math.Abs(e.Location.Y - _mouseDownLocation.Y) > (gridSize/2))
+                {
+                    _isDragOperation = true;
+                }
+            }
         }
     }
 

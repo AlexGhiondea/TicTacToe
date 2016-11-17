@@ -45,6 +45,8 @@
             this.GameSurface.TabIndex = 0;
             this.GameSurface.Paint += new System.Windows.Forms.PaintEventHandler(this.GameSurface_Paint);
             this.GameSurface.MouseDown += new System.Windows.Forms.MouseEventHandler(this.GameSurface_MouseDown);
+            this.GameSurface.MouseMove += new System.Windows.Forms.MouseEventHandler(this.GameSurface_MouseMove);
+            this.GameSurface.MouseUp += new System.Windows.Forms.MouseEventHandler(this.GameSurface_MouseUp);
             // 
             // lblNext
             // 
@@ -88,7 +90,6 @@
             this.DoubleBuffered = true;
             this.Name = "TicTacToe";
             this.Text = "5 in a row tic-tac-toe";
-            this.Load += new System.EventHandler(this.TicTacToe_Load);
             this.ResumeLayout(false);
             this.PerformLayout();
 
