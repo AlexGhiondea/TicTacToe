@@ -31,5 +31,12 @@ namespace TicTacToe
         {
             return (nodeLocation + ((int)nodeLocation > DirectionDifference ? -1 : 1) * DirectionDifference);
         }
+
+        public static void GetCoordinates(string key, out int newX, out int newY)
+        {
+            var splitKey = key.Split('_');
+            newX = int.Parse(splitKey[0]) - 1;
+            newY = int.Parse(splitKey[1]) - 1;
+        }
     }
 }
