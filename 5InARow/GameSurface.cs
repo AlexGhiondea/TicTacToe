@@ -97,18 +97,9 @@ namespace TicTacToe
             string nodeKey = Constants.GetKey(x, y);
             if (nodes.ContainsKey(nodeKey))
             {
-                if (!Thinking)
-                    MessageBox.Show("A move already exists there!!!");
+                MessageBox.Show("A move already exists there!!!");
                 return;
             }
-
-            //// check to see if it is close to any other nodes, on all sides. If not, error.
-            //if (!HasNeighbours(x, y) && nodes.Count > 0)
-            //{
-            //    if (!Thinking)
-            //        MessageBox.Show("A move needs to be close to an existing node!");
-            //    return;
-            //}
 
             var newInternalNode = new InternalNode(currentPlayer);
 
@@ -135,10 +126,6 @@ namespace TicTacToe
             s_moves.Push(newNode);
             nodes.Add(nodeKey, newNode);
 
-            // just trying things, not actually check the win.
-            if (Thinking)
-                return;
-
             Refresh();
 
             if (HasWon(newInternalNode))
@@ -156,8 +143,6 @@ namespace TicTacToe
                 ChangePlayer();
             }
         }
-
-        private bool Thinking = false;
 
         private bool HasWon(InternalNode newInternalNode)
         {
@@ -183,32 +168,15 @@ namespace TicTacToe
                 node.Node.RemoveFromNeighbours();
                 nodes.Remove($"{Constants.GetKey(node.X, node.Y)}");
 
-                if (!Thinking)
-                {
-                    // reset the current move
-                    ChangePlayer();
-                    Refresh();
-                }
+                // reset the current move
+                ChangePlayer();
+                Refresh();
             }
         }
 
         private void ChangePlayer()
         {
             CurrentPlayer = CurrentPlayer == TicTacToeValue.o ? TicTacToeValue.x : TicTacToeValue.o;
-        }
-
-        private bool HasNeighbours(int x, int y)
-        {
-            foreach (NodeLocation value in Enum.GetValues(typeof(NodeLocation)))
-            {
-                string neighborLocation = Constants.MapDirectionToComputation[value](x, y);
-                if (nodes.ContainsKey(neighborLocation))
-                {
-                    Debug.WriteLine($"Found neighbour at: {neighborLocation}");
-                    return true;
-                }
-            }
-            return false;
         }
 
         private void btnUndo_Click(object sender, EventArgs e)
@@ -325,7 +293,7 @@ namespace TicTacToe
                                  CountOnDirection(NodeLocation.TopLeft, currentX, currentY) +
                                  CountOnDirection(NodeLocation.TopRight, currentX, currentY);
 
-                //keep a running total of best X and best O positions
+                // keep a running total of best X and best O positions
                 if (positionValues >= 0 && positionValues > bestX)
                     bestX = positionValues;
 
@@ -339,8 +307,6 @@ namespace TicTacToe
             Debug.WriteLine($"Best X postion has value {bestX}, Best O position has value {bestO}");
 
             // we now need to figure out the win move.
-
-            Random r = new Random((int)DateTime.Now.Ticks);
             int bestMoveCount;
             if (CurrentPlayer == TicTacToeValue.o)
             {
@@ -350,52 +316,11 @@ namespace TicTacToe
             {
                 bestMoveCount = Math.Abs(bestX) > Math.Abs(bestO) ? bestX : bestO;
             }
-            var possibleMoves = mapPositionContributions.Where(pair => pair.Value == bestMoveCount);
 
+            Random r = new Random((int)DateTime.Now.Ticks);
+            var possibleMoves = mapPositionContributions.Where(pair => pair.Value == bestMoveCount);
             myMove = possibleMoves.Skip(r.Next(possibleMoves.Count() - 1)).First().Key;
             Debug.WriteLine($"The best move for {CurrentPlayer} is {myMove}");
-
-            //if (CurrentPlayer == TicTacToeValue.o)
-            //{
-            //    // need to decide if we should play offensive of defensive.
-            //    if (Math.Abs(bestO) > Math.Abs(bestX))
-            //    {
-            //        // we have a better change to win by playing offensive
-            //        // find the move with the bestO
-            //        var moves = mapPositionContributions.Where(pair => pair.Value == bestO);
-
-            //        myMove = moves.Skip(r.Next(moves.Count() - 1)).First().Key;
-
-            //    }
-            //    else
-            //    {
-            //        // play defense
-            //        var moves = mapPositionContributions.Where(pair => pair.Value == bestX);
-
-            //        myMove = moves.Skip(r.Next(moves.Count() - 1)).First().Key;
-            //    }
-            //}
-            //else
-            //{
-            //    //find max positive value
-
-            //    if (Math.Abs(bestX) > Math.Abs(bestO))
-            //    {
-            //        // we have a better change to win by playing offensive
-            //        var moves = mapPositionContributions.Where(pair => pair.Value == bestX);
-
-            //        myMove = moves.Skip(r.Next(moves.Count() - 1)).First().Key;
-            //    }
-            //    else
-            //    {
-            //        // find the move with the bestO
-            //        var moves = mapPositionContributions.Where(pair => pair.Value == bestO);
-
-            //        myMove = moves.Skip(r.Next(moves.Count() - 1)).First().Key;
-            //    }
-            //}
-
-            //Debug.WriteLine($"The best move for {CurrentPlayer} is {myMove}");
 
             int x = 0, y = 0;
             GetCoordinates(myMove, out x, out y);
@@ -417,9 +342,10 @@ namespace TicTacToe
         private int CountOnSingleDirection(NodeLocation direction, int currentX, int currentY)
         {
             //try the first direciton
-            if (nodes.ContainsKey(Constants.MapDirectionToComputation[direction](currentX, currentY)))
+            string nodeKey = Constants.MapDirectionToComputation[direction](currentX, currentY);
+            if (nodes.ContainsKey(nodeKey))
             {
-                return nodes[Constants.MapDirectionToComputation[direction](currentX, currentY)].Node.AddAllOnDirection(direction, null);
+                return nodes[nodeKey].Node.AddAllOnDirection(direction, null);
             }
             return 0;
         }
@@ -514,7 +440,6 @@ namespace TicTacToe
             }
 
             // no more neighbours.
-
             return (Value == TicTacToeValue.x ? 1 : -1);
         }
 
@@ -522,7 +447,6 @@ namespace TicTacToe
         public InternalNode(TicTacToeValue value)
         {
             Value = value;
-            //Neighbours = new List<NeighbourLocation>();
         }
 
         public void AddNeighbour(InternalNode node, NodeLocation location)
