@@ -32,6 +32,9 @@
             this.lblNext = new System.Windows.Forms.Label();
             this.label1 = new System.Windows.Forms.Label();
             this.btnUndo = new System.Windows.Forms.Button();
+            this.button1 = new System.Windows.Forms.Button();
+            this.rbPlayer = new System.Windows.Forms.RadioButton();
+            this.rbAI = new System.Windows.Forms.RadioButton();
             this.SuspendLayout();
             // 
             // GameSurface
@@ -78,11 +81,46 @@
             this.btnUndo.UseVisualStyleBackColor = true;
             this.btnUndo.Click += new System.EventHandler(this.btnUndo_Click);
             // 
+            // button1
+            // 
+            this.button1.Location = new System.Drawing.Point(364, 11);
+            this.button1.Name = "button1";
+            this.button1.Size = new System.Drawing.Size(87, 23);
+            this.button1.TabIndex = 4;
+            this.button1.Text = "Suggest move";
+            this.button1.UseVisualStyleBackColor = true;
+            this.button1.Click += new System.EventHandler(this.button1_Click);
+            // 
+            // rbPlayer
+            // 
+            this.rbPlayer.AutoSize = true;
+            this.rbPlayer.Checked = true;
+            this.rbPlayer.Location = new System.Drawing.Point(224, 14);
+            this.rbPlayer.Name = "rbPlayer";
+            this.rbPlayer.Size = new System.Drawing.Size(54, 17);
+            this.rbPlayer.TabIndex = 5;
+            this.rbPlayer.TabStop = true;
+            this.rbPlayer.Text = "Player";
+            this.rbPlayer.UseVisualStyleBackColor = true;
+            // 
+            // rbAI
+            // 
+            this.rbAI.AutoSize = true;
+            this.rbAI.Location = new System.Drawing.Point(284, 15);
+            this.rbAI.Name = "rbAI";
+            this.rbAI.Size = new System.Drawing.Size(35, 17);
+            this.rbAI.TabIndex = 6;
+            this.rbAI.Text = "AI";
+            this.rbAI.UseVisualStyleBackColor = true;
+            // 
             // TicTacToe
             // 
             this.AutoScaleDimensions = new System.Drawing.SizeF(6F, 13F);
             this.AutoScaleMode = System.Windows.Forms.AutoScaleMode.Font;
             this.ClientSize = new System.Drawing.Size(544, 401);
+            this.Controls.Add(this.rbAI);
+            this.Controls.Add(this.rbPlayer);
+            this.Controls.Add(this.button1);
             this.Controls.Add(this.btnUndo);
             this.Controls.Add(this.lblNext);
             this.Controls.Add(this.GameSurface);
@@ -101,6 +139,9 @@
         private System.Windows.Forms.Label lblNext;
         private System.Windows.Forms.Label label1;
         private System.Windows.Forms.Button btnUndo;
+        private System.Windows.Forms.Button button1;
+        private System.Windows.Forms.RadioButton rbPlayer;
+        private System.Windows.Forms.RadioButton rbAI;
     }
 }
 

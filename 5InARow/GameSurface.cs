@@ -92,23 +92,25 @@ namespace TicTacToe
 
         Dictionary<string, VisualNode> nodes = new Dictionary<string, VisualNode>();
 
-        private void AddMove(int x, int y)
+        private void AddMove(int x, int y, TicTacToeValue currentPlayer)
         {
             string nodeKey = Constants.GetKey(x, y);
             if (nodes.ContainsKey(nodeKey))
             {
-                MessageBox.Show("A move already exists there!!!");
+                if (!Thinking)
+                    MessageBox.Show("A move already exists there!!!");
                 return;
             }
 
-            // check to see if it is close to any other nodes, on all sides. If not, error.
-            if (!HasNeighbours(x, y) && nodes.Count > 0)
-            {
-                MessageBox.Show("A move needs to be close to an existing node!");
-                return;
-            }
+            //// check to see if it is close to any other nodes, on all sides. If not, error.
+            //if (!HasNeighbours(x, y) && nodes.Count > 0)
+            //{
+            //    if (!Thinking)
+            //        MessageBox.Show("A move needs to be close to an existing node!");
+            //    return;
+            //}
 
-            var newInternalNode = new InternalNode(CurrentPlayer);
+            var newInternalNode = new InternalNode(currentPlayer);
 
             foreach (NodeLocation value in Enum.GetValues(typeof(NodeLocation)))
             {
@@ -133,6 +135,10 @@ namespace TicTacToe
             s_moves.Push(newNode);
             nodes.Add(nodeKey, newNode);
 
+            // just trying things, not actually check the win.
+            if (Thinking)
+                return;
+
             Refresh();
 
             if (HasWon(newInternalNode))
@@ -150,6 +156,8 @@ namespace TicTacToe
                 ChangePlayer();
             }
         }
+
+        private bool Thinking = false;
 
         private bool HasWon(InternalNode newInternalNode)
         {
@@ -174,15 +182,19 @@ namespace TicTacToe
                 // remove itself from the neighbours
                 node.Node.RemoveFromNeighbours();
                 nodes.Remove($"{Constants.GetKey(node.X, node.Y)}");
-                // reset the current move
-                ChangePlayer();
-                Refresh();
+
+                if (!Thinking)
+                {
+                    // reset the current move
+                    ChangePlayer();
+                    Refresh();
+                }
             }
         }
 
         private void ChangePlayer()
         {
-            CurrentPlayer = (TicTacToeValue)((int)(CurrentPlayer + 1) % 2);
+            CurrentPlayer = CurrentPlayer == TicTacToeValue.o ? TicTacToeValue.x : TicTacToeValue.o;
         }
 
         private bool HasNeighbours(int x, int y)
@@ -225,7 +237,11 @@ namespace TicTacToe
 
                 Debug.WriteLine($"Trying to add new node at offsetX:{x}, offsetY:{y}");
 
-                AddMove(x, y);
+                AddMove(x, y, CurrentPlayer);
+
+                // if we are playing against AI... suggest a move.
+                if (rbAI.Checked)
+                    PlayAIMove();
             }
             _isDragOperation = false;
         }
@@ -238,9 +254,10 @@ namespace TicTacToe
             Dictionary<string, VisualNode> newNodeDict = new Dictionary<string, VisualNode>();
             foreach (var key in nodes.Keys)
             {
-                var splitKey = key.Split('_');
-                int newX = int.Parse(splitKey[0]) + offsetX;
-                int newY = int.Parse(splitKey[1]) + offsetY;
+                int newX, newY;
+                GetCoordinates(key, out newX, out newY);
+                newX += offsetX + 1;
+                newY += offsetY + 1;
 
                 var newKey = $"{newX}_{newY}";
                 Debug.WriteLine($"Remapping {key} to {newKey}");
@@ -249,6 +266,13 @@ namespace TicTacToe
                 nodes[key].Y += offsetY;
             }
             nodes = newNodeDict;
+        }
+
+        private static void GetCoordinates(string key, out int newX, out int newY)
+        {
+            var splitKey = key.Split('_');
+            newX = int.Parse(splitKey[0]) - 1;
+            newY = int.Parse(splitKey[1]) - 1;
         }
 
         private bool _isDragOperation = false;
@@ -264,6 +288,141 @@ namespace TicTacToe
                 }
             }
         }
+
+        private void button1_Click(object sender, EventArgs e)
+        {
+            PlayAIMove();
+        }
+
+        private void PlayAIMove()
+        {
+            string myMove = string.Empty;
+            // figure out all the empty nodes outthere.
+            HashSet<string> positions = new HashSet<string>();
+            foreach (var node in s_moves)
+            {
+                foreach (var neighbour in node.GetEmptyNeighBours())
+                {
+                    positions.Add(neighbour);
+                }
+            }
+
+            // we are going to count (-1, 1) based on the counts for each position.
+            // we don't need to actually place the move, just compute the neighbours we need to check for.
+            Dictionary<string, int> mapPositionContributions = new Dictionary<string, int>();
+            int bestX = 0, bestO = 0;
+            foreach (var position in positions)
+            {
+                int currentX, currentY;
+                GetCoordinates(position, out currentX, out currentY);
+
+                // find all the nei
+
+                int positionValues = 0; // consider it neutral for now.
+
+                positionValues = CountOnDirection(NodeLocation.TopCenter, currentX, currentY) +
+                                 CountOnDirection(NodeLocation.Left, currentX, currentY) +
+                                 CountOnDirection(NodeLocation.TopLeft, currentX, currentY) +
+                                 CountOnDirection(NodeLocation.TopRight, currentX, currentY);
+
+                //keep a running total of best X and best O positions
+                if (positionValues >= 0 && positionValues > bestX)
+                    bestX = positionValues;
+
+                if (positionValues <= 0 && positionValues < bestO)
+                    bestO = positionValues;
+
+                Debug.WriteLine($"Computed value {position}={positionValues}");
+                mapPositionContributions[position] = positionValues;
+            }
+
+            Debug.WriteLine($"Best X postion has value {bestX}, Best O position has value {bestO}");
+
+            // we now need to figure out the win move.
+
+            Random r = new Random((int)DateTime.Now.Ticks);
+            int bestMoveCount;
+            if (CurrentPlayer == TicTacToeValue.o)
+            {
+                bestMoveCount = Math.Abs(bestO) > Math.Abs(bestX) ? bestO : bestX;
+            }
+            else
+            {
+                bestMoveCount = Math.Abs(bestX) > Math.Abs(bestO) ? bestX : bestO;
+            }
+            var possibleMoves = mapPositionContributions.Where(pair => pair.Value == bestMoveCount);
+
+            myMove = possibleMoves.Skip(r.Next(possibleMoves.Count() - 1)).First().Key;
+            Debug.WriteLine($"The best move for {CurrentPlayer} is {myMove}");
+
+            //if (CurrentPlayer == TicTacToeValue.o)
+            //{
+            //    // need to decide if we should play offensive of defensive.
+            //    if (Math.Abs(bestO) > Math.Abs(bestX))
+            //    {
+            //        // we have a better change to win by playing offensive
+            //        // find the move with the bestO
+            //        var moves = mapPositionContributions.Where(pair => pair.Value == bestO);
+
+            //        myMove = moves.Skip(r.Next(moves.Count() - 1)).First().Key;
+
+            //    }
+            //    else
+            //    {
+            //        // play defense
+            //        var moves = mapPositionContributions.Where(pair => pair.Value == bestX);
+
+            //        myMove = moves.Skip(r.Next(moves.Count() - 1)).First().Key;
+            //    }
+            //}
+            //else
+            //{
+            //    //find max positive value
+
+            //    if (Math.Abs(bestX) > Math.Abs(bestO))
+            //    {
+            //        // we have a better change to win by playing offensive
+            //        var moves = mapPositionContributions.Where(pair => pair.Value == bestX);
+
+            //        myMove = moves.Skip(r.Next(moves.Count() - 1)).First().Key;
+            //    }
+            //    else
+            //    {
+            //        // find the move with the bestO
+            //        var moves = mapPositionContributions.Where(pair => pair.Value == bestO);
+
+            //        myMove = moves.Skip(r.Next(moves.Count() - 1)).First().Key;
+            //    }
+            //}
+
+            //Debug.WriteLine($"The best move for {CurrentPlayer} is {myMove}");
+
+            int x = 0, y = 0;
+            GetCoordinates(myMove, out x, out y);
+            AddMove(x, y, CurrentPlayer);
+        }
+
+        private int CountOnDirection(NodeLocation direction, int currentX, int currentY)
+        {
+            int count = CountOnSingleDirection(direction, currentX, currentY) +
+                CountOnSingleDirection(Constants.GetReverseDirection(direction), currentX, currentY);
+
+            // block once the opponent has 3
+            if (Math.Abs(count) >= 3)
+                count *= 2;
+
+            return count;
+        }
+
+        private int CountOnSingleDirection(NodeLocation direction, int currentX, int currentY)
+        {
+            //try the first direciton
+            if (nodes.ContainsKey(Constants.MapDirectionToComputation[direction](currentX, currentY)))
+            {
+                return nodes[Constants.MapDirectionToComputation[direction](currentX, currentY)].Node.AddAllOnDirection(direction, null);
+            }
+            return 0;
+        }
     }
 
     public class VisualNode
@@ -271,6 +430,16 @@ namespace TicTacToe
         public int X;
         public int Y;
         public InternalNode Node;
+
+        public List<string> GetEmptyNeighBours()
+        {
+            var result = new List<string>();
+            foreach (var direction in Node.GetEmptyNodesAroundIt())
+            {
+                result.Add(Constants.MapDirectionToComputation[direction](X, Y));
+            }
+            return result;
+        }
 
         public VisualNode(int x, int y, InternalNode node)
         {
@@ -290,13 +459,14 @@ namespace TicTacToe
             int TopX = X * gridSize;
             int TopY = Y * gridSize;
 
+            string nodeValue = (Node.Value == TicTacToeValue.o) ? "o" : "x";
             // draw the node's value
-            var stringSize = g.MeasureString($"{Node.Value}", s_gameFont);
+            var stringSize = g.MeasureString($"{nodeValue}", s_gameFont);
 
             var left = TopX + (gridSize - stringSize.Width) / 2;
             var top = TopY + (gridSize - stringSize.Height) / 2;
 
-            g.DrawString($"{Node.Value}", s_gameFont, last ? Brushes.Blue : Brushes.Black, left, top);
+            g.DrawString($"{nodeValue}", s_gameFont, last ? Brushes.Blue : Brushes.Black, left, top);
         }
 
         private readonly Font s_gameFont = new Font("Consolas", 30);
@@ -310,12 +480,42 @@ namespace TicTacToe
         {
             // starting from this direction count how many there are
             InternalNode nextNode;
-            if (!_neighbours.TryGetValue(direction, out nextNode)) 
+
+            if (_neighbours.TryGetValue(direction, out nextNode) && nextNode.Value == value)
             {
-                return 0;
+                // we have a neighbor there of the same value
+                return 1 + nextNode.CountOnDirection(direction, value);
             }
 
-            return 1 + nextNode.CountOnDirection(direction, value);
+            return 0;
+        }
+
+        public int AddAllOnDirection(NodeLocation direction, TicTacToeValue? previousValue)
+        {
+            // starting from this direction count how many there are
+            InternalNode nextNode;
+
+            if (_neighbours.TryGetValue(direction, out nextNode))
+            {
+                // we have a neighbor there of the same value
+                if (previousValue != null && Value == previousValue)
+                {
+                    return (Value == TicTacToeValue.x ? 1 : -1) + nextNode.AddAllOnDirection(direction, previousValue);
+                }
+                else if (previousValue == null)
+                {
+                    return (Value == TicTacToeValue.x ? 1 : -1) + nextNode.AddAllOnDirection(direction, Value);
+                }
+                else
+                {
+                    //we should just stop, as only next node will only have impact (not everything on the row).
+                    return (Value == TicTacToeValue.x ? 1 : -1);
+                }
+            }
+
+            // no more neighbours.
+
+            return (Value == TicTacToeValue.x ? 1 : -1);
         }
 
         public TicTacToeValue Value;
@@ -347,6 +547,16 @@ namespace TicTacToe
                 _neighbours.Remove(nodeAtLocation.Key);
             }
         }
+
+        public IEnumerable<NodeLocation> GetEmptyNodesAroundIt()
+        {
+            // see which of the directions does not have anything in the dictionary
+            foreach (NodeLocation direction in Enum.GetValues(typeof(NodeLocation)))
+            {
+                if (!_neighbours.ContainsKey(direction))
+                    yield return direction;
+            }
+        }
     }
 
     public enum NodeLocation
@@ -363,7 +573,7 @@ namespace TicTacToe
 
     public enum TicTacToeValue
     {
-        x = 0,
-        o = 1
+        x,
+        o
     }
 }
