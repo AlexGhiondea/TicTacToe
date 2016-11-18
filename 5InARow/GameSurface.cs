@@ -149,14 +149,25 @@ namespace TicTacToe
             // check the 4 directions.
             int colCount = 1 + newInternalNode.CountOnDirection(NodeLocation.TopCenter, newInternalNode.Value) + newInternalNode.CountOnDirection(NodeLocation.BottomCenter, newInternalNode.Value);
 
+            if (colCount >= NeededForWin)
+                return true;
+
             int rowCount = 1 + newInternalNode.CountOnDirection(NodeLocation.Left, newInternalNode.Value) + newInternalNode.CountOnDirection(NodeLocation.Right, newInternalNode.Value);
 
+            if (rowCount >= NeededForWin)
+                return true;
+
             int bigDiagCount = 1 + newInternalNode.CountOnDirection(NodeLocation.TopLeft, newInternalNode.Value) + newInternalNode.CountOnDirection(NodeLocation.BottomRight, newInternalNode.Value);
+            if (bigDiagCount >= NeededForWin)
+                return true;
 
             int smallDiagCount = 1 + newInternalNode.CountOnDirection(NodeLocation.TopRight, newInternalNode.Value) + newInternalNode.CountOnDirection(NodeLocation.BottomLeft, newInternalNode.Value);
+            if (smallDiagCount >= NeededForWin)
+                return true;
 
-            return colCount >= NeededForWin || rowCount >= NeededForWin || bigDiagCount >= NeededForWin || smallDiagCount >= NeededForWin;
+            return false;
         }
+
         private const int NeededForWin = 5;
 
         private void RemovePreviousMove()
