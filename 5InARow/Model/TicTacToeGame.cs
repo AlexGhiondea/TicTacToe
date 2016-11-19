@@ -41,10 +41,10 @@ namespace TicTacToe
                 return null;
             }
 
-            if (nodes.Count > 0 && !HasNeighbours(x, y))
-            {
-                return null;
-            }
+            //if (nodes.Count > 0 && !HasNeighbours(x, y))
+            //{
+            //    return null;
+            //}
 
             var newInternalNode = new InternalNode(currentPlayer);
 
@@ -97,6 +97,20 @@ namespace TicTacToe
             return false;
         }
 
+        private int Max(params int[] values)
+        {
+            int absoluteMax = 0;
+            for (int i = 0; i < values.Length; i++)
+            {
+                if (Math.Abs(values[i]) > Math.Abs(absoluteMax))
+                {
+                    absoluteMax = values[i];
+                }
+            }
+            return absoluteMax;
+        }
+
+
         public VisualNode GetAIMove(TicTacToeValue currentPlayer)
         {
             string myMove = string.Empty;
@@ -123,10 +137,10 @@ namespace TicTacToe
 
                 int positionValues = 0; // consider it neutral for now.
 
-                positionValues = CountOnDirection(NodeLocation.TopCenter, currentX, currentY) +
-                                 CountOnDirection(NodeLocation.Left, currentX, currentY) +
-                                 CountOnDirection(NodeLocation.TopLeft, currentX, currentY) +
-                                 CountOnDirection(NodeLocation.TopRight, currentX, currentY);
+                positionValues = Max(CountOnDirection(NodeLocation.TopCenter, currentX, currentY, currentPlayer),
+                                 CountOnDirection(NodeLocation.Left, currentX, currentY, currentPlayer),
+                                 CountOnDirection(NodeLocation.TopLeft, currentX, currentY, currentPlayer),
+                                 CountOnDirection(NodeLocation.TopRight, currentX, currentY, currentPlayer));
 
                 // keep a running total of best X and best O positions
                 if (positionValues >= 0 && positionValues > bestX)
@@ -175,40 +189,35 @@ namespace TicTacToe
             return AddMove(x, y, currentPlayer);
         }
 
-        private int CountOnDirection(NodeLocation direction, int currentX, int currentY)
+        private int CountOnDirection(NodeLocation direction, int currentX, int currentY, TicTacToeValue currentPlayer)
         {
-            //TODO: need to update this to not use recursion.
-            // Instead, it needs to generate the node positions by hand and count that way.
-            // otherwise, gaps in the graph are missed.
-            // we might not even need a graph anymore!!!
+            int countX = CountOnSingleDirection(direction, currentX, currentY, TicTacToeValue.x) +
+                CountOnSingleDirection(Constants.GetReverseDirection(direction), currentX, currentY, TicTacToeValue.x);
 
-            // from the current direction, make sure that you keep getting the next node on that direction
+            if (countX >= 4)
+                countX *= countX;
+            else if (countX >= 3)
+                countX *= 2;
 
-            //do
-            //{
-            //    var node = nodes[Constants.MapDirectionToComputation[direction](currentX, currentY)];
-            //    currentX = node.X;
-            //    currentY = node.Y;
-            //} while (true);
+            int countO = CountOnSingleDirection(direction, currentX, currentY, TicTacToeValue.o) +
+                CountOnSingleDirection(Constants.GetReverseDirection(direction), currentX, currentY, TicTacToeValue.o);
 
+            if (countO >= 4)
+                countO *= countO;
+            else if (countO >= 3)
+                countO *= 2;
 
-            int count = CountOnSingleDirection(direction, currentX, currentY) +
-                CountOnSingleDirection(Constants.GetReverseDirection(direction), currentX, currentY);
-
-            // block once the opponent has 3
-            if (Math.Abs(count) >= (NeededForWin / 2) + 1)
-                count *= 20 * count; // large number to  sure it get picked
-
-            return count;
+            return currentPlayer == TicTacToeValue.x ? countX - countO : countO - countX;
         }
 
-        private int CountOnSingleDirection(NodeLocation direction, int currentX, int currentY)
+        private int CountOnSingleDirection(NodeLocation direction, int currentX, int currentY, TicTacToeValue value)
         {
-            //try the first direciton
             string nodeKey = Constants.MapDirectionToComputation[direction](currentX, currentY);
             if (nodes.ContainsKey(nodeKey))
             {
-                return nodes[nodeKey].Node.AddAllOnDirection(direction, null);
+                int count = 0;
+                nodes[nodeKey].Node.NavigateADirection(direction, value, ref count);
+                return count;
             }
             return 0;
         }

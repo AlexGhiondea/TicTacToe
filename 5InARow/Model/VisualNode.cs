@@ -48,10 +48,11 @@ namespace TicTacToe
             var left = TopX + (gridSize - stringSize.Width) / 2;
             var top = TopY + (gridSize - stringSize.Height) / 2;
 
+            g.DrawString($"{X}_{Y}", new Font("Tahoma", 6), Brushes.Black, TopX, TopY);
             g.DrawString($"{nodeValue}", s_gameFont, last ? Brushes.Blue : Brushes.Black, left, top);
         }
 
-        private readonly Font s_gameFont = new Font("Consolas", 30);
+        private readonly Font s_gameFont = new Font("Consolas", 20);
     }
 
 

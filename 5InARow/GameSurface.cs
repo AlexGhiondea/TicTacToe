@@ -213,6 +213,8 @@ namespace TicTacToe
                 ChangePlayer();
                 PlaceAIMove();
             }
+
+            Application.DoEvents();
         }
 
         private void btnUndo_Click(object sender, EventArgs e)

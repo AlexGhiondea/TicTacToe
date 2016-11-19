@@ -24,6 +24,35 @@ namespace TicTacToe
             return 0;
         }
 
+        public void NavigateADirection(NodeLocation direction, TicTacToeValue previousValue, ref int currentCount)
+        {
+            // starting from this direction count how many there are
+            InternalNode nextNode;
+
+            if (Value == previousValue)
+            {
+                currentCount++;
+            }
+
+            if (_neighbours.TryGetValue(direction, out nextNode))
+            {
+                // we have a neighbor there of the same value
+                if (Value == previousValue)
+                {
+                    //currentCount++;
+                    nextNode.NavigateADirection(direction, previousValue, ref currentCount);
+                    return;
+                }
+                // we still have a neighbour, blocking us
+            }
+            else
+            {
+                if (currentCount >= 3)
+                    // we don't have a neighbour blocking us
+                    currentCount += 2;
+            }
+        }
+
         public int AddAllOnDirection(NodeLocation direction, TicTacToeValue? previousValue)
         {
             // starting from this direction count how many there are
@@ -42,8 +71,10 @@ namespace TicTacToe
                 }
                 else
                 {
+                    // the next value is different than the current one.
+
                     //we should just stop, as only next node will only have impact (not everything on the row).
-                    return 0;
+                    return Value == TicTacToeValue.x ? 1 : -1;
                 }
             }
 
