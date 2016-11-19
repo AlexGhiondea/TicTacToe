@@ -230,113 +230,104 @@ namespace TicTacToe
             return count;
         }
 
-        private int CountOnSingleDirectionUsingBoard(NodeLocation direction, int currentX, int currentY, TicTacToeValue currentPlayer)
+        private AIMove CountOnSingleDirectionUsingBoard(NodeLocation direction, int currentX, int currentY, TicTacToeValue currentPlayer)
         {
-            int count = 0;
+            AIMove move = new AIMove();
+            //int count = 0;
             string nodeKey = Constants.MapDirectionToComputation[direction](currentX, currentY);
             if (!nodes.ContainsKey(nodeKey))
             {
-                return count;
+                return move;
             }
 
-            Debug.WriteLine($"Checking node {nodeKey}");
+            //Debug.WriteLine($"Checking node {nodeKey}");
             TraverseBoard(nodes[nodeKey], direction, (node) =>
             {
                 if (node.Node.Value == currentPlayer)
-                    count++;
+                {
+                    move.countPerDirection++;
+                }
                 // check to see if there is a next neighbor
                 string nk = Constants.MapDirectionToComputation[direction](node.X, node.Y);
                 if (!nodes.ContainsKey(nk))
                 {
-                    if (count >= 2)
-                        // we don't have a neighbour blocking us
-                        count += 100;
+                    move.endsWithOpponentMove = false;
+                }
+                else
+                {
+                    if(nodes[nk].Node.Value != currentPlayer)
+                    {
+                        move.endsWithOpponentMove = true;
+                    }
                 }
             });
-            return count;
+            return move;
         }
+
+        //private int CountOnSingleDirectionUsingBoard(NodeLocation direction, int currentX, int currentY, TicTacToeValue currentPlayer)
+        //{
+        //    int count = 0;
+        //    string nodeKey = Constants.MapDirectionToComputation[direction](currentX, currentY);
+        //    if (!nodes.ContainsKey(nodeKey))
+        //    {
+        //        return count;
+        //    }
+
+        //    Debug.WriteLine($"Checking node {nodeKey}");
+        //    TraverseBoard(nodes[nodeKey], direction, (node) =>
+        //    {
+        //        if (node.Node.Value == currentPlayer)
+        //            count++;
+        //        // check to see if there is a next neighbor
+        //        string nk = Constants.MapDirectionToComputation[direction](node.X, node.Y);
+        //        if (!nodes.ContainsKey(nk))
+        //        {
+        //            if (count >= 2)
+        //                // we don't have a neighbour blocking us
+        //                count += 100;
+        //        }
+        //    });
+        //    return count;
+        //}
 
         private int CountOnBothDirectionsUsingBoard(NodeLocation direction, int currentX, int currentY, TicTacToeValue currentPlayer)
         {
-            int countForX = CountOnSingleDirection(direction, currentX, currentY, currentPlayer) +
-                CountOnSingleDirection(direction.GetReverseDirection(), currentX, currentY, currentPlayer);
+            var moveFirstDir = CountOnSingleDirectionUsingBoard(direction, currentX, currentY, currentPlayer);
+            var moveSecondDir = CountOnSingleDirectionUsingBoard(direction.GetReverseDirection(), currentX, currentY, currentPlayer);
 
-            int openEndsX = 0;
-            while (countForX > 100)
-            {
-                countForX = countForX - 100;
-                openEndsX++;
-            }
+            int count = moveFirstDir.countPerDirection + moveSecondDir.countPerDirection;
 
-            if (countForX >= 4)
-                countForX *= countForX;
-            else if (countForX >= 3)
-                countForX *= 2;
+            // this is the case where we have something like: o x _ x x o 
+            // there is no point to put an o in there as that can never ever be a winning move from x
+            if (count == 3 && (moveFirstDir.endsWithOpponentMove && moveSecondDir.endsWithOpponentMove))
+                count = 0;
 
-            //add back the ends.
-            countForX += openEndsX;
+            if (count >= 4)
+                count *= count;
+            else if (count >= 3)
+                count *= 2;
 
-            return countForX;
+            if (count >=2  && !moveFirstDir.endsWithOpponentMove)
+                count++;
+
+            if (count >= 2 && !moveSecondDir.endsWithOpponentMove)
+                count++;
+
+            return count;
         }
 
 
         private int CountOnDirection(NodeLocation direction, int currentX, int currentY, TicTacToeValue currentPlayer)
         {
             int countForX = CountOnBothDirectionsUsingBoard(direction, currentX, currentY, TicTacToeValue.x);
-            int countX = CountOnDirectionCore(direction, currentX, currentY, TicTacToeValue.x);
-            Debug.Assert(countForX == countX);
-
-
-            //int countX2 = 0;
-            //string nodeKey = Constants.MapDirectionToComputation[direction](currentX, currentY);
-            //if (nodes.ContainsKey(nodeKey))
-            //{
-            //    Debug.WriteLine($"Checking node {nodeKey}");
-            //    TraverseBoard(nodes[nodeKey], direction, (node) =>
-            //    {
-            //        if (node.Node.Value == TicTacToeValue.x)
-            //            countX2++;
-            //        // check to see if there is a next neighbor
-            //        string nk = Constants.MapDirectionToComputation[direction](node.X, node.Y);
-            //        if (!nodes.ContainsKey(nk))
-            //        {
-            //            if (countX2 >= 2)
-            //                // we don't have a neighbour blocking us
-            //                countX2 += 100;
-            //        }
-            //    });
-            //}
-
-            //nodeKey = Constants.MapDirectionToComputation[direction.GetReverseDirection()](currentX, currentY);
-            //int countx3 = 0;
-            //if (nodes.ContainsKey(nodeKey))
-            //{
-            //    Debug.WriteLine($"Checking node {nodeKey}");
-            //    TraverseBoard(nodes[nodeKey], direction.GetReverseDirection(), (node) =>
-            //    {
-            //        if (node.Node.Value == TicTacToeValue.x)
-            //            countx3++;
-
-            //        // check to see if there is a next neighbor
-            //        string nk = Constants.MapDirectionToComputation[direction.GetReverseDirection()](node.X, node.Y);
-            //        if (!nodes.ContainsKey(nk))
-            //        {
-            //            if (countx3 >= 2)
-            //                // we don't have a neighbour blocking us
-            //                countx3 += 100;
-            //        }
-            //    });
-            //}
-
-            //countX2 += countx3;
-
+            //int countX = CountOnDirectionCore(direction, currentX, currentY, TicTacToeValue.x);
+            //Debug.Assert(countForX == countX);
 
             int countForO = CountOnBothDirectionsUsingBoard(direction, currentX, currentY, TicTacToeValue.o);
-            int countO = CountOnDirectionCore(direction, currentX, currentY, TicTacToeValue.o);
-            Debug.Assert(countForO == countO);
+            ///int countO = CountOnDirectionCore(direction, currentX, currentY, TicTacToeValue.o);
+            //Debug.Assert(countForO == countO);
 
-
-            return currentPlayer == TicTacToeValue.x ? countX - countO : countO - countX;
+            return currentPlayer == TicTacToeValue.x ? countForX - countForO : countForO - countForX;
         }
 
         private int CountOnSingleDirection(NodeLocation direction, int currentX, int currentY, TicTacToeValue value)
@@ -379,6 +370,16 @@ namespace TicTacToe
                 nodes[key].Y += offsetY;
             }
             nodes = newNodeDict;
+        }
+    }
+
+    class AIMove
+    {
+        public int countPerDirection;
+        public bool endsWithOpponentMove;
+
+        public AIMove()
+        {
         }
     }
 }

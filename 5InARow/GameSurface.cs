@@ -147,7 +147,9 @@ namespace TicTacToe
         private void PlaceAIMove()
         {
             var move = _game.GetAIMove(CurrentPlayer);
+            Application.DoEvents();
             PlaceMove(move);
+            
         }
 
         private void btnUndo_Click(object sender, EventArgs e)
