@@ -136,6 +136,8 @@ namespace TicTacToe
             else
             {
                 ChangePlayer();
+
+                PlaceAIMove();
             }
 
             Application.DoEvents();
