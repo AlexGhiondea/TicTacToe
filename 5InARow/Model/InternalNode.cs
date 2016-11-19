@@ -33,6 +33,11 @@ namespace TicTacToe
             {
                 currentCount++;
             }
+            else
+            {
+                //we have a different value at the top.
+                return;
+            }
 
             if (_neighbours.TryGetValue(direction, out nextNode))
             {
@@ -47,9 +52,9 @@ namespace TicTacToe
             }
             else
             {
-                if (currentCount >= 3)
+                if (currentCount >= 2)
                     // we don't have a neighbour blocking us
-                    currentCount += 2;
+                    currentCount += 100;
             }
         }
 

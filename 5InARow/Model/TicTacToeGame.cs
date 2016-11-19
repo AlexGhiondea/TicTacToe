@@ -19,18 +19,9 @@ namespace TicTacToe
         private readonly int NeededForWin;
         Dictionary<string, VisualNode> nodes = new Dictionary<string, VisualNode>();
 
-        private bool HasNeighbours(int x, int y)
+        public void ResetGame()
         {
-            foreach (NodeLocation value in Enum.GetValues(typeof(NodeLocation)))
-            {
-                string neighborLocation = Constants.MapDirectionToComputation[value](x, y);
-                if (nodes.ContainsKey(neighborLocation))
-                {
-                    Debug.WriteLine($"Found neighbour at: {neighborLocation}");
-                    return true;
-                }
-            }
-            return false;
+            nodes.Clear();
         }
 
         public VisualNode AddMove(int x, int y, TicTacToeValue currentPlayer)
@@ -40,11 +31,6 @@ namespace TicTacToe
             {
                 return null;
             }
-
-            //if (nodes.Count > 0 && !HasNeighbours(x, y))
-            //{
-            //    return null;
-            //}
 
             var newInternalNode = new InternalNode(currentPlayer);
 
@@ -109,7 +95,6 @@ namespace TicTacToe
             }
             return absoluteMax;
         }
-
 
         public VisualNode GetAIMove(TicTacToeValue currentPlayer)
         {
@@ -189,23 +174,34 @@ namespace TicTacToe
             return AddMove(x, y, currentPlayer);
         }
 
+        private int CountOnDirectionCore(NodeLocation direction, int currentX, int currentY, TicTacToeValue currentPlayer)
+        {
+            int count = CountOnSingleDirection(direction, currentX, currentY, currentPlayer) +
+                CountOnSingleDirection(Constants.GetReverseDirection(direction), currentX, currentY, currentPlayer);
+
+            int openEndsX = 0;
+            while (count > 100)
+            {
+                count = count - 100;
+                openEndsX++;
+            }
+
+            if (count >= 4)
+                count *= count;
+            else if (count >= 3)
+                count *= 2;
+
+            //add back the ends.
+            count += openEndsX;
+
+            return count;
+        }
+
         private int CountOnDirection(NodeLocation direction, int currentX, int currentY, TicTacToeValue currentPlayer)
         {
-            int countX = CountOnSingleDirection(direction, currentX, currentY, TicTacToeValue.x) +
-                CountOnSingleDirection(Constants.GetReverseDirection(direction), currentX, currentY, TicTacToeValue.x);
+            int countX = CountOnDirectionCore(direction, currentX, currentY, TicTacToeValue.x);
 
-            if (countX >= 4)
-                countX *= countX;
-            else if (countX >= 3)
-                countX *= 2;
-
-            int countO = CountOnSingleDirection(direction, currentX, currentY, TicTacToeValue.o) +
-                CountOnSingleDirection(Constants.GetReverseDirection(direction), currentX, currentY, TicTacToeValue.o);
-
-            if (countO >= 4)
-                countO *= countO;
-            else if (countO >= 3)
-                countO *= 2;
+            int countO = CountOnDirectionCore(direction, currentX, currentY, TicTacToeValue.o);
 
             return currentPlayer == TicTacToeValue.x ? countX - countO : countO - countX;
         }
@@ -251,8 +247,5 @@ namespace TicTacToe
             }
             nodes = newNodeDict;
         }
-
-
-
     }
 }

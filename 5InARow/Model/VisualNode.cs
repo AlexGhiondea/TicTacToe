@@ -37,22 +37,31 @@ namespace TicTacToe
 
         internal void Draw(int gridSize, Graphics g, bool last)
         {
+            string nodeValue = (Node.Value == TicTacToeValue.o) ? "o" : "x";
+            // draw the node's value
             // scale the coordinates.
             int TopX = X * gridSize;
             int TopY = Y * gridSize;
-
-            string nodeValue = (Node.Value == TicTacToeValue.o) ? "o" : "x";
-            // draw the node's value
             var stringSize = g.MeasureString($"{nodeValue}", s_gameFont);
 
             var left = TopX + (gridSize - stringSize.Width) / 2;
             var top = TopY + (gridSize - stringSize.Height) / 2;
 
+            g.DrawString($"{nodeValue}", s_gameFont, GetBrush(last), left, top);
+#if DEBUG
             g.DrawString($"{X}_{Y}", new Font("Tahoma", 6), Brushes.Black, TopX, TopY);
-            g.DrawString($"{nodeValue}", s_gameFont, last ? Brushes.Blue : Brushes.Black, left, top);
+#endif
         }
 
-        private readonly Font s_gameFont = new Font("Consolas", 20);
+        private Brush GetBrush(bool last)
+        {
+            if (!last)
+                return Node.Value == TicTacToeValue.x ? Brushes.DarkRed : Brushes.DarkGreen;
+            else
+                return Node.Value == TicTacToeValue.x ? Brushes.IndianRed : Brushes.LightGreen;
+        }
+
+        private readonly Font s_gameFont = new Font("Consolas", 30);
     }
 
 
