@@ -59,24 +59,26 @@ namespace TicTacToe
             return newNode;
         }
 
-        public bool IsWinningMove(InternalNode currentMove)
+        public bool IsWinningMove(InternalNode currentMove, out NodeLocation winDirection)
         {
             // check the 4 directions.
             int colCount = 1 + currentMove.CountOnDirection(NodeLocation.TopCenter, currentMove.Value) + currentMove.CountOnDirection(NodeLocation.BottomCenter, currentMove.Value);
-
+            winDirection = NodeLocation.TopCenter;
             if (colCount >= NeededForWin)
                 return true;
 
             int rowCount = 1 + currentMove.CountOnDirection(NodeLocation.Left, currentMove.Value) + currentMove.CountOnDirection(NodeLocation.Right, currentMove.Value);
-
+            winDirection = NodeLocation.Left;
             if (rowCount >= NeededForWin)
                 return true;
 
             int bigDiagCount = 1 + currentMove.CountOnDirection(NodeLocation.TopLeft, currentMove.Value) + currentMove.CountOnDirection(NodeLocation.BottomRight, currentMove.Value);
+            winDirection = NodeLocation.TopLeft;
             if (bigDiagCount >= NeededForWin)
                 return true;
 
             int smallDiagCount = 1 + currentMove.CountOnDirection(NodeLocation.TopRight, currentMove.Value) + currentMove.CountOnDirection(NodeLocation.BottomLeft, currentMove.Value);
+            winDirection = NodeLocation.TopRight;
             if (smallDiagCount >= NeededForWin)
                 return true;
 
@@ -174,6 +176,37 @@ namespace TicTacToe
             return AddMove(x, y, currentPlayer);
         }
 
+        private void TraverseBoard(VisualNode node, NodeLocation direction, Action<VisualNode> runAction)
+        {
+            // flag all the nodes on the winDirection
+            var currentNode = nodes[Constants.GetKey(node.X, node.Y)];
+            TicTacToeValue nodeValue = node.Node.Value;
+
+            // traverse all nodes of the same value
+            while (currentNode.Node.Value == nodeValue)
+            {
+                runAction(currentNode);
+                string nodeKey = Constants.MapDirectionToComputation[direction](currentNode.X, currentNode.Y);
+
+                // continue on the direction, if there is anything there.
+                if (nodes.ContainsKey(nodeKey))
+                {
+                    currentNode = nodes[nodeKey];
+                }
+                else
+                {
+                    break;
+                }
+            }
+        }
+
+        internal void MarkWinningNodes(VisualNode node, NodeLocation winDirection)
+        {
+            // flag all the nodes on that direction so that when they are drawn, you can tell who won.
+            TraverseBoard(node, winDirection, (n) => n.PartOfWinningMove = true);
+            TraverseBoard(node, winDirection.GetReverseDirection(), (n) => n.PartOfWinningMove = true);
+        }
+
         private int CountOnDirectionCore(NodeLocation direction, int currentX, int currentY, TicTacToeValue currentPlayer)
         {
             int count = CountOnSingleDirection(direction, currentX, currentY, currentPlayer) +
@@ -197,9 +230,94 @@ namespace TicTacToe
             return count;
         }
 
+        private int CountOnSingleDirectionUsingBoard(NodeLocation direction, int currentX, int currentY, TicTacToeValue currentPlayer)
+        {
+            int count = 0;
+            string nodeKey = Constants.MapDirectionToComputation[direction](currentX, currentY);
+            if (!nodes.ContainsKey(nodeKey))
+            {
+                return count;
+            }
+
+            Debug.WriteLine($"Checking node {nodeKey}");
+            TraverseBoard(nodes[nodeKey], direction, (node) =>
+            {
+                if (node.Node.Value == TicTacToeValue.x)
+                    count++;
+                // check to see if there is a next neighbor
+                string nk = Constants.MapDirectionToComputation[direction](node.X, node.Y);
+                if (!nodes.ContainsKey(nk))
+                {
+                    if (count >= 2)
+                        // we don't have a neighbour blocking us
+                        count += 100;
+                }
+            });
+            return count;
+        }
+
         private int CountOnDirection(NodeLocation direction, int currentX, int currentY, TicTacToeValue currentPlayer)
         {
+            int countX2 = 0;
+            string nodeKey = Constants.MapDirectionToComputation[direction](currentX, currentY);
+            if (nodes.ContainsKey(nodeKey))
+            {
+                Debug.WriteLine($"Checking node {nodeKey}");
+                TraverseBoard(nodes[nodeKey], direction, (node) =>
+                {
+                    if (node.Node.Value == TicTacToeValue.x)
+                        countX2++;
+                    // check to see if there is a next neighbor
+                    string nk = Constants.MapDirectionToComputation[direction](node.X, node.Y);
+                    if (!nodes.ContainsKey(nk))
+                    {
+                        if (countX2 >= 2)
+                            // we don't have a neighbour blocking us
+                            countX2 += 100;
+                    }
+                });
+            }
+
+            nodeKey = Constants.MapDirectionToComputation[direction.GetReverseDirection()](currentX, currentY);
+            int countx3 = 0;
+            if (nodes.ContainsKey(nodeKey))
+            {
+                Debug.WriteLine($"Checking node {nodeKey}");
+                TraverseBoard(nodes[nodeKey], direction.GetReverseDirection(), (node) =>
+                {
+                    if (node.Node.Value == TicTacToeValue.x)
+                        countx3++;
+
+                    // check to see if there is a next neighbor
+                    string nk = Constants.MapDirectionToComputation[direction.GetReverseDirection()](node.X, node.Y);
+                    if (!nodes.ContainsKey(nk))
+                    {
+                        if (countx3 >= 2)
+                            // we don't have a neighbour blocking us
+                            countx3 += 100;
+                    }
+                });
+            }
+
+            countX2 += countx3;
+
+            int openEndsX = 0;
+            while (countX2 > 100)
+            {
+                countX2 = countX2 - 100;
+                openEndsX++;
+            }
+
+            if (countX2 >= 4)
+                countX2 *= countX2;
+            else if (countX2 >= 3)
+                countX2 *= 2;
+
+            //add back the ends.
+            countX2 += openEndsX;
+
             int countX = CountOnDirectionCore(direction, currentX, currentY, TicTacToeValue.x);
+            Debug.Assert(countX2 == countX);
 
             int countO = CountOnDirectionCore(direction, currentX, currentY, TicTacToeValue.o);
 

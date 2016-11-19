@@ -124,8 +124,12 @@ namespace TicTacToe
 
             Refresh();
 
-            if (_game.IsWinningMove(move.Node))
+            NodeLocation winDirection;
+            if (_game.IsWinningMove(move.Node, out winDirection))
             {
+                // Mark the wining nodes.
+                _game.MarkWinningNodes(move, winDirection);
+                Refresh();
                 MessageBox.Show($"Winner is player {CurrentPlayer}!!!");
                 return true;
             }
