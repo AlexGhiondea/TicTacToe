@@ -9,6 +9,7 @@ namespace TicTacToe
 {
     public class TicTacToeGame
     {
+        public bool GameEnded = false;
         public TicTacToeGame(int neededForWin)
         {
             NeededForWin = neededForWin;
@@ -71,7 +72,6 @@ namespace TicTacToe
 
             return result;
         }
-
 
         public VisualNode GetAIMove(TicTacToeValue currentPlayer)
         {
@@ -191,7 +191,6 @@ namespace TicTacToe
             return false;
         }
 
-
         private void TraverseBoard(VisualNode node, NodeLocation direction, Action<VisualNode> runAction)
         {
             // flag all the nodes on the winDirection
@@ -223,7 +222,6 @@ namespace TicTacToe
             TraverseBoard(node, winDirection.GetReverseDirection(), (n) => n.PartOfWinningMove = true);
         }
 
-
         private AIMove CountOnSingleDirectionUsingBoard(NodeLocation direction, int currentX, int currentY, TicTacToeValue currentPlayer)
         {
             AIMove move = new AIMove();
@@ -234,7 +232,6 @@ namespace TicTacToe
                 return move;
             }
 
-            //Debug.WriteLine($"Checking node {nodeKey}");
             TraverseBoard(nodes[nodeKey], direction, (node) =>
             {
                 if (node.Value == currentPlayer)
@@ -295,6 +292,9 @@ namespace TicTacToe
         internal void RemoveNode(VisualNode node)
         {
             nodes.Remove($"{Constants.GetKey(node.X, node.Y)}");
+
+            // reset this in case we are undo-ing after the game has ended.
+            GameEnded = false;
         }
 
         public void TranslateAllMoves(int offsetX, int offsetY)
@@ -317,16 +317,6 @@ namespace TicTacToe
                 nodes[key].Y += offsetY;
             }
             nodes = newNodeDict;
-        }
-    }
-
-    class AIMove
-    {
-        public int countPerDirection;
-        public bool endsWithOpponentMove;
-
-        public AIMove()
-        {
         }
     }
 }

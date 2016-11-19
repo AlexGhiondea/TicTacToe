@@ -114,6 +114,11 @@ namespace TicTacToe
 
         private bool PlaceMove(VisualNode move)
         {
+            if (_game.GameEnded)
+            {
+                return false;
+            }
+
             if (move == null)
             {
                 MessageBox.Show("Cannot place the move there!");
@@ -127,16 +132,17 @@ namespace TicTacToe
             NodeLocation winDirection;
             if (_game.IsWinningMove(move, out winDirection))
             {
+                _game.GameEnded = true;
                 // Mark the wining nodes.
                 _game.MarkWinningNodes(move, winDirection);
                 Refresh();
                 MessageBox.Show($"Winner is player {CurrentPlayer}!!!");
+                ChangePlayer();
                 return true;
             }
             else
             {
                 ChangePlayer();
-
                 PlaceAIMove();
             }
 
@@ -146,10 +152,11 @@ namespace TicTacToe
 
         private void PlaceAIMove()
         {
-            var move = _game.GetAIMove(CurrentPlayer);
-            Application.DoEvents();
-            PlaceMove(move);
-            
+            Task.Run(() =>
+            {
+                var move = _game.GetAIMove(CurrentPlayer);
+                GameSurface.Invoke((MethodInvoker)delegate { PlaceMove(move); });
+            });
         }
 
         private void btnUndo_Click(object sender, EventArgs e)
@@ -178,14 +185,17 @@ namespace TicTacToe
 
                 Debug.WriteLine($"Trying to add new node at offsetX:{x}, offsetY:{y}");
 
-                var move = _game.AddMove(x, y, CurrentPlayer);
-
-                if (!PlaceMove(move))
+                if (!_game.GameEnded)
                 {
-                    // if we are playing against AI... suggest a move.
-                    if (rbAI.Checked)
+                    var move = _game.AddMove(x, y, CurrentPlayer);
+
+                    if (!PlaceMove(move))
                     {
-                        PlaceAIMove();
+                        // if we are playing against AI... suggest a move.
+                        if (rbAI.Checked)
+                        {
+                            PlaceAIMove();
+                        }
                     }
                 }
             }

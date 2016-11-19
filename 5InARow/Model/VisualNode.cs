@@ -48,9 +48,13 @@ namespace TicTacToe
             }
 
 #if DEBUG
-            g.DrawString($"{X}_{Y}", new Font("Tahoma", 6), Brushes.Black, TopX, TopY);
+            g.DrawString($"{X}_{Y}", s_debugFont, Brushes.Black, TopX, TopY);
 #endif
         }
+
+#if DEBUG
+        private static readonly Font s_debugFont = new Font("Tahoma", 6);
+#endif
 
         private Brush GetBrush()
         {
@@ -59,8 +63,8 @@ namespace TicTacToe
             else
                 return Value == TicTacToeValue.x ? Brushes.IndianRed : Brushes.Teal;
         }
-        private readonly Pen s_lastMove = new Pen(Brushes.Black, 1.5f);
-        private readonly Font s_gameFont = new Font("Consolas", 30);
+        private static readonly Pen s_lastMove = new Pen(Brushes.Black, 1.5f);
+        private static readonly Font s_gameFont = new Font("Consolas", 30);
     }
 
 
