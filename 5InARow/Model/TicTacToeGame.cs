@@ -32,57 +32,10 @@ namespace TicTacToe
                 return null;
             }
 
-            var newInternalNode = new InternalNode(currentPlayer);
-
-            foreach (NodeLocation value in Enum.GetValues(typeof(NodeLocation)))
-            {
-                string neighborLocation = Constants.MapDirectionToComputation[value](x, y);
-                VisualNode neighbourNode;
-                if (nodes.TryGetValue(neighborLocation, out neighbourNode))
-                {
-                    Debug.WriteLine($"Node {nodeKey} has node {neighborLocation} at {value}");
-
-                    // add the existing node to the new node as neighbour
-                    newInternalNode.AddNeighbour(neighbourNode.Node, value);
-
-                    // get the reverse direction
-                    NodeLocation reverseDirection = value.GetReverseDirection();
-                    neighbourNode.Node.AddNeighbour(newInternalNode, reverseDirection);
-
-                    Debug.WriteLine($"Node {Constants.GetKey(neighbourNode.X, neighbourNode.Y)} has node {nodeKey} at {reverseDirection}.");
-                }
-            }
-
-            VisualNode newNode = new VisualNode(x, y, newInternalNode);
+            VisualNode newNode = new VisualNode(x, y, currentPlayer);
             nodes.Add(nodeKey, newNode);
 
             return newNode;
-        }
-
-        public bool IsWinningMove(InternalNode currentMove, out NodeLocation winDirection)
-        {
-            // check the 4 directions.
-            int colCount = 1 + currentMove.CountOnDirection(NodeLocation.TopCenter, currentMove.Value) + currentMove.CountOnDirection(NodeLocation.BottomCenter, currentMove.Value);
-            winDirection = NodeLocation.TopCenter;
-            if (colCount >= NeededForWin)
-                return true;
-
-            int rowCount = 1 + currentMove.CountOnDirection(NodeLocation.Left, currentMove.Value) + currentMove.CountOnDirection(NodeLocation.Right, currentMove.Value);
-            winDirection = NodeLocation.Left;
-            if (rowCount >= NeededForWin)
-                return true;
-
-            int bigDiagCount = 1 + currentMove.CountOnDirection(NodeLocation.TopLeft, currentMove.Value) + currentMove.CountOnDirection(NodeLocation.BottomRight, currentMove.Value);
-            winDirection = NodeLocation.TopLeft;
-            if (bigDiagCount >= NeededForWin)
-                return true;
-
-            int smallDiagCount = 1 + currentMove.CountOnDirection(NodeLocation.TopRight, currentMove.Value) + currentMove.CountOnDirection(NodeLocation.BottomLeft, currentMove.Value);
-            winDirection = NodeLocation.TopRight;
-            if (smallDiagCount >= NeededForWin)
-                return true;
-
-            return false;
         }
 
         private int Max(params int[] values)
@@ -98,18 +51,33 @@ namespace TicTacToe
             return absoluteMax;
         }
 
+        public HashSet<string> GetEmptyNeighBours()
+        {
+            var result = new HashSet<string>();
+
+            foreach (var node in nodes.Values)
+            {
+                // look on every direction
+                foreach (NodeLocation direction in Enum.GetValues(typeof(NodeLocation)))
+                {
+                    string nodeKey = Constants.MapDirectionToComputation[direction](node.X, node.Y);
+
+                    if (!nodes.ContainsKey(nodeKey))
+                    {
+                        result.Add(nodeKey);
+                    }
+                }
+            }
+
+            return result;
+        }
+
+
         public VisualNode GetAIMove(TicTacToeValue currentPlayer)
         {
             string myMove = string.Empty;
             // figure out all the empty nodes outthere.
-            HashSet<string> positions = new HashSet<string>();
-            foreach (var node in nodes.Values)
-            {
-                foreach (var neighbour in node.GetEmptyNeighBours())
-                {
-                    positions.Add(neighbour);
-                }
-            }
+            HashSet<string> positions = GetEmptyNeighBours();
 
             // we are going to count (-1, 1) based on the counts for each position.
             // we don't need to actually place the move, just compute the neighbours we need to check for.
@@ -176,14 +144,62 @@ namespace TicTacToe
             return AddMove(x, y, currentPlayer);
         }
 
+        internal bool IsWinningMove(VisualNode move, out NodeLocation winDirection)
+        {
+            int count = 1;
+            Action<VisualNode> Count = (n) =>
+            {
+                // we should not count the original move as we count that ouside of this loop.
+                if (n.X == move.X && n.Y==move.Y)
+                {
+                    return;
+                }
+
+                if (n.Value == move.Value)
+                    count++;
+            };
+
+            count = 1;
+            winDirection = NodeLocation.TopLeft;
+            TraverseBoard(move, winDirection, Count);
+            TraverseBoard(move, winDirection.GetReverseDirection(), Count);
+            if (count >= NeededForWin)
+                return true;
+
+            count = 1;
+            winDirection = NodeLocation.TopCenter;
+            TraverseBoard(move, winDirection, Count);
+            TraverseBoard(move, winDirection.GetReverseDirection(), Count);
+            if (count >= NeededForWin)
+                return true;
+
+            count = 1;
+            winDirection = NodeLocation.TopRight;
+            TraverseBoard(move, winDirection, Count);
+            TraverseBoard(move, winDirection.GetReverseDirection(), Count);
+            if (count >= NeededForWin)
+                return true;
+
+            count = 1;
+            winDirection = NodeLocation.Left;
+            TraverseBoard(move, winDirection, Count);
+            TraverseBoard(move, winDirection.GetReverseDirection(), Count);
+            if (count >= NeededForWin)
+                return true;
+
+
+            return false;
+        }
+
+
         private void TraverseBoard(VisualNode node, NodeLocation direction, Action<VisualNode> runAction)
         {
             // flag all the nodes on the winDirection
             var currentNode = nodes[Constants.GetKey(node.X, node.Y)];
-            TicTacToeValue nodeValue = node.Node.Value;
+            TicTacToeValue nodeValue = node.Value;
 
             // traverse all nodes of the same value
-            while (currentNode.Node.Value == nodeValue)
+            while (currentNode.Value == nodeValue)
             {
                 runAction(currentNode);
                 string nodeKey = Constants.MapDirectionToComputation[direction](currentNode.X, currentNode.Y);
@@ -207,28 +223,6 @@ namespace TicTacToe
             TraverseBoard(node, winDirection.GetReverseDirection(), (n) => n.PartOfWinningMove = true);
         }
 
-        private int CountOnDirectionCore(NodeLocation direction, int currentX, int currentY, TicTacToeValue currentPlayer)
-        {
-            int count = CountOnSingleDirection(direction, currentX, currentY, currentPlayer) +
-                CountOnSingleDirection(Constants.GetReverseDirection(direction), currentX, currentY, currentPlayer);
-
-            int openEndsX = 0;
-            while (count > 100)
-            {
-                count = count - 100;
-                openEndsX++;
-            }
-
-            if (count >= 4)
-                count *= count;
-            else if (count >= 3)
-                count *= 2;
-
-            //add back the ends.
-            count += openEndsX;
-
-            return count;
-        }
 
         private AIMove CountOnSingleDirectionUsingBoard(NodeLocation direction, int currentX, int currentY, TicTacToeValue currentPlayer)
         {
@@ -243,7 +237,7 @@ namespace TicTacToe
             //Debug.WriteLine($"Checking node {nodeKey}");
             TraverseBoard(nodes[nodeKey], direction, (node) =>
             {
-                if (node.Node.Value == currentPlayer)
+                if (node.Value == currentPlayer)
                 {
                     move.countPerDirection++;
                 }
@@ -255,7 +249,7 @@ namespace TicTacToe
                 }
                 else
                 {
-                    if(nodes[nk].Node.Value != currentPlayer)
+                    if (nodes[nk].Value != currentPlayer)
                     {
                         move.endsWithOpponentMove = true;
                     }
@@ -263,32 +257,6 @@ namespace TicTacToe
             });
             return move;
         }
-
-        //private int CountOnSingleDirectionUsingBoard(NodeLocation direction, int currentX, int currentY, TicTacToeValue currentPlayer)
-        //{
-        //    int count = 0;
-        //    string nodeKey = Constants.MapDirectionToComputation[direction](currentX, currentY);
-        //    if (!nodes.ContainsKey(nodeKey))
-        //    {
-        //        return count;
-        //    }
-
-        //    Debug.WriteLine($"Checking node {nodeKey}");
-        //    TraverseBoard(nodes[nodeKey], direction, (node) =>
-        //    {
-        //        if (node.Node.Value == currentPlayer)
-        //            count++;
-        //        // check to see if there is a next neighbor
-        //        string nk = Constants.MapDirectionToComputation[direction](node.X, node.Y);
-        //        if (!nodes.ContainsKey(nk))
-        //        {
-        //            if (count >= 2)
-        //                // we don't have a neighbour blocking us
-        //                count += 100;
-        //        }
-        //    });
-        //    return count;
-        //}
 
         private int CountOnBothDirectionsUsingBoard(NodeLocation direction, int currentX, int currentY, TicTacToeValue currentPlayer)
         {
@@ -307,7 +275,7 @@ namespace TicTacToe
             else if (count >= 3)
                 count *= 2;
 
-            if (count >=2  && !moveFirstDir.endsWithOpponentMove)
+            if (count >= 2 && !moveFirstDir.endsWithOpponentMove)
                 count++;
 
             if (count >= 2 && !moveSecondDir.endsWithOpponentMove)
@@ -316,37 +284,16 @@ namespace TicTacToe
             return count;
         }
 
-
         private int CountOnDirection(NodeLocation direction, int currentX, int currentY, TicTacToeValue currentPlayer)
         {
             int countForX = CountOnBothDirectionsUsingBoard(direction, currentX, currentY, TicTacToeValue.x);
-            //int countX = CountOnDirectionCore(direction, currentX, currentY, TicTacToeValue.x);
-            //Debug.Assert(countForX == countX);
-
             int countForO = CountOnBothDirectionsUsingBoard(direction, currentX, currentY, TicTacToeValue.o);
-            ///int countO = CountOnDirectionCore(direction, currentX, currentY, TicTacToeValue.o);
-            //Debug.Assert(countForO == countO);
 
             return currentPlayer == TicTacToeValue.x ? countForX - countForO : countForO - countForX;
         }
 
-        private int CountOnSingleDirection(NodeLocation direction, int currentX, int currentY, TicTacToeValue value)
-        {
-            string nodeKey = Constants.MapDirectionToComputation[direction](currentX, currentY);
-            if (nodes.ContainsKey(nodeKey))
-            {
-                int count = 0;
-                nodes[nodeKey].Node.NavigateADirection(direction, value, ref count);
-                return count;
-            }
-            return 0;
-        }
-
         internal void RemoveNode(VisualNode node)
         {
-            // remove itself from the neighbours
-            node.Node.RemoveFromNeighbours();
-
             nodes.Remove($"{Constants.GetKey(node.X, node.Y)}");
         }
 

@@ -11,24 +11,14 @@ namespace TicTacToe
     {
         public int X;
         public int Y;
-        public InternalNode Node;
+        public TicTacToeValue Value;
         public bool PartOfWinningMove;
 
-        public List<string> GetEmptyNeighBours()
-        {
-            var result = new List<string>();
-            foreach (var direction in Node.GetEmptyNodesAroundIt())
-            {
-                result.Add(Constants.MapDirectionToComputation[direction](X, Y));
-            }
-            return result;
-        }
-
-        public VisualNode(int x, int y, InternalNode node)
+        public VisualNode(int x, int y, TicTacToeValue value)
         {
             X = x;
             Y = y;
-            Node = node;
+            Value = value;
         }
 
         public void Draw(int gridSize, Graphics g)
@@ -40,7 +30,7 @@ namespace TicTacToe
         {
             const int boxPad = 2;
 
-            string nodeValue = (Node.Value == TicTacToeValue.o) ? "o" : "x";
+            string nodeValue = (Value == TicTacToeValue.o) ? "o" : "x";
             // draw the node's value
             // scale the coordinates.
             int TopX = X * gridSize;
@@ -67,7 +57,7 @@ namespace TicTacToe
             if (PartOfWinningMove)
                 return Brushes.Orange;
             else
-                return Node.Value == TicTacToeValue.x ? Brushes.IndianRed : Brushes.Teal;
+                return Value == TicTacToeValue.x ? Brushes.IndianRed : Brushes.Teal;
         }
         private readonly Pen s_lastMove = new Pen(Brushes.Black, 1.5f);
         private readonly Font s_gameFont = new Font("Consolas", 30);

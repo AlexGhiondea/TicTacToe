@@ -125,7 +125,7 @@ namespace TicTacToe
             Refresh();
 
             NodeLocation winDirection;
-            if (_game.IsWinningMove(move.Node, out winDirection))
+            if (_game.IsWinningMove(move, out winDirection))
             {
                 // Mark the wining nodes.
                 _game.MarkWinningNodes(move, winDirection);

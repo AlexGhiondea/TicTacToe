@@ -68,7 +68,6 @@
     <Compile Include="GameSurface.Designer.cs">
       <DependentUpon>GameSurface.cs</DependentUpon>
     </Compile>
-    <Compile Include="Model\InternalNode.cs" />
     <Compile Include="Model\TicTacToeGame.cs" />
     <Compile Include="Model\TicTacToeValue.cs" />
     <Compile Include="Model\NodeLocation.cs" />
