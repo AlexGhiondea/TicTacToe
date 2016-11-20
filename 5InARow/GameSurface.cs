@@ -12,8 +12,6 @@ using System.Text;
 using System.Threading.Tasks;
 using System.Windows.Forms;
 
-
-
 namespace TicTacToe
 {
     public partial class TicTacToe : Form
@@ -104,6 +102,7 @@ namespace TicTacToe
                 var node = s_moves.Pop();
 
                 _game.RemoveNode(node);
+                tslMoveCount.Text = $"Move: {s_moves.Count}";
 
                 // reset the current move
                 ChangePlayer();
@@ -130,6 +129,8 @@ namespace TicTacToe
             }
 
             s_moves.Push(move);
+
+            tslMoveCount.Text = $"Move: {s_moves.Count}";
 
             Refresh();
 
@@ -244,6 +245,7 @@ namespace TicTacToe
             _game = new TicTacToeGame(NeededForWin);
             s_moves.Clear();
             CurrentPlayer = TicTacToeValue.x;
+            tslMoveCount.Text = "";
             Refresh();
         }
 
@@ -261,6 +263,10 @@ namespace TicTacToe
                     e.Cancel = true;
                 }
             }
+        }
+
+        private void TicTacToe_Load(object sender, EventArgs e)
+        {
         }
     }
 }

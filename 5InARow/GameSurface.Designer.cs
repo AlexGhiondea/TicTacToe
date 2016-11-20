@@ -41,7 +41,11 @@
             this.label2 = new System.Windows.Forms.Label();
             this.toolStripMenuItem1 = new System.Windows.Forms.ToolStripSeparator();
             this.exitToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
+            this.statusStrip1 = new System.Windows.Forms.StatusStrip();
+            this.tslMoveCount = new System.Windows.Forms.ToolStripStatusLabel();
+            this.GameSurface.SuspendLayout();
             this.menuStrip1.SuspendLayout();
+            this.statusStrip1.SuspendLayout();
             this.SuspendLayout();
             // 
             // GameSurface
@@ -50,6 +54,7 @@
             | System.Windows.Forms.AnchorStyles.Left) 
             | System.Windows.Forms.AnchorStyles.Right)));
             this.GameSurface.BackColor = System.Drawing.SystemColors.ControlLightLight;
+            this.GameSurface.Controls.Add(this.statusStrip1);
             this.GameSurface.Location = new System.Drawing.Point(2, 62);
             this.GameSurface.Name = "GameSurface";
             this.GameSurface.Size = new System.Drawing.Size(924, 670);
@@ -174,6 +179,21 @@
             this.exitToolStripMenuItem.Text = "Exit";
             this.exitToolStripMenuItem.Click += new System.EventHandler(this.exitToolStripMenuItem_Click);
             // 
+            // statusStrip1
+            // 
+            this.statusStrip1.Items.AddRange(new System.Windows.Forms.ToolStripItem[] {
+            this.tslMoveCount});
+            this.statusStrip1.Location = new System.Drawing.Point(0, 648);
+            this.statusStrip1.Name = "statusStrip1";
+            this.statusStrip1.Size = new System.Drawing.Size(924, 22);
+            this.statusStrip1.TabIndex = 0;
+            this.statusStrip1.Text = "statusStrip1";
+            // 
+            // tslMoveCount
+            // 
+            this.tslMoveCount.Name = "tslMoveCount";
+            this.tslMoveCount.Size = new System.Drawing.Size(0, 17);
+            // 
             // TicTacToe
             // 
             this.AutoScaleDimensions = new System.Drawing.SizeF(6F, 13F);
@@ -194,8 +214,13 @@
             this.Name = "TicTacToe";
             this.Text = "5 in a row tic-tac-toe";
             this.FormClosing += new System.Windows.Forms.FormClosingEventHandler(this.TicTacToe_FormClosing);
+            this.Load += new System.EventHandler(this.TicTacToe_Load);
+            this.GameSurface.ResumeLayout(false);
+            this.GameSurface.PerformLayout();
             this.menuStrip1.ResumeLayout(false);
             this.menuStrip1.PerformLayout();
+            this.statusStrip1.ResumeLayout(false);
+            this.statusStrip1.PerformLayout();
             this.ResumeLayout(false);
             this.PerformLayout();
 
@@ -216,6 +241,8 @@
         private System.Windows.Forms.Label label2;
         private System.Windows.Forms.ToolStripSeparator toolStripMenuItem1;
         private System.Windows.Forms.ToolStripMenuItem exitToolStripMenuItem;
+        private System.Windows.Forms.StatusStrip statusStrip1;
+        private System.Windows.Forms.ToolStripStatusLabel tslMoveCount;
     }
 }
 
