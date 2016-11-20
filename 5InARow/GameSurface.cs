@@ -141,8 +141,33 @@ namespace TicTacToe
                 // Mark the wining nodes.
                 _game.MarkWinningNodes(move, winDirection);
                 Refresh();
+
+#if !COMPUTER_AGAINST_ITSELF
                 MessageBox.Show($"Winner is player {CurrentPlayer}!!!");
-                ChangePlayer();
+#else
+
+                if (CurrentPlayer == TicTacToeValue.x)
+                    winX++;
+                else
+                    winO++;
+
+                if (s_moves.Count > maxMove)
+                    maxMove = s_moves.Count;
+                if (s_moves.Count < minMove)
+                    minMove = s_moves.Count;
+
+                label3.Text = $"X: {winX}, O: {winO}, min:{minMove}, max:{maxMove}";
+#endif
+
+                _game = new TicTacToeGame(NeededForWin);
+                s_moves.Clear();
+                CurrentPlayer = TicTacToeValue.x;
+                tslMoveCount.Text = "";
+                Refresh();
+
+#if COMPUTER_AGAINST_ITSELF
+                PlaceAIMove();
+#endif
                 return true;
             }
             else
@@ -157,6 +182,10 @@ namespace TicTacToe
             Application.DoEvents();
             return false;
         }
+
+#if COMPUTER_AGAINST_ITSELF
+        int winX = 0, winO = 0, maxMove=0, minMove=int.MaxValue;
+#endif
 
         private void PlaceAIMove()
         {

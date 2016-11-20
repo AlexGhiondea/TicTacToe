@@ -43,6 +43,7 @@
             this.exitToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
             this.statusStrip1 = new System.Windows.Forms.StatusStrip();
             this.tslMoveCount = new System.Windows.Forms.ToolStripStatusLabel();
+            this.label3 = new System.Windows.Forms.Label();
             this.GameSurface.SuspendLayout();
             this.menuStrip1.SuspendLayout();
             this.statusStrip1.SuspendLayout();
@@ -193,12 +194,25 @@
             // 
             this.tslMoveCount.Name = "tslMoveCount";
             this.tslMoveCount.Size = new System.Drawing.Size(0, 17);
+
+#if COMPUTER_AGAINST_ITSELF
+            // 
+            // label3
+            // 
+            this.label3.AutoSize = true;
+            this.label3.Location = new System.Drawing.Point(336, 33);
+            this.label3.Name = "label3";
+            this.label3.Size = new System.Drawing.Size(35, 13);
+            this.label3.TabIndex = 9;
+            this.label3.Text = "label3";
+#endif
             // 
             // TicTacToe
             // 
             this.AutoScaleDimensions = new System.Drawing.SizeF(6F, 13F);
             this.AutoScaleMode = System.Windows.Forms.AutoScaleMode.Font;
             this.ClientSize = new System.Drawing.Size(927, 733);
+            this.Controls.Add(this.label3);
             this.Controls.Add(this.label2);
             this.Controls.Add(this.rbAI);
             this.Controls.Add(this.rbPlayer);
@@ -226,7 +240,7 @@
 
         }
 
-        #endregion
+#endregion
 
         private System.Windows.Forms.Panel GameSurface;
         private System.Windows.Forms.Label lblNext;
@@ -243,6 +257,7 @@
         private System.Windows.Forms.ToolStripMenuItem exitToolStripMenuItem;
         private System.Windows.Forms.StatusStrip statusStrip1;
         private System.Windows.Forms.ToolStripStatusLabel tslMoveCount;
+        private System.Windows.Forms.Label label3;
     }
 }
 

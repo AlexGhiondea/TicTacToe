@@ -78,7 +78,7 @@ namespace TicTacToe
         {
             if (nodes.Count == 0)
             {
-                return AddMove(10, 10, currentPlayer);
+                return AddMove(15, 15, currentPlayer);
             }
 
             string myMove = string.Empty;
@@ -89,6 +89,7 @@ namespace TicTacToe
             // we don't need to actually place the move, just compute the neighbours we need to check for.
             Dictionary<string, int> mapPositionContributions = new Dictionary<string, int>();
             int bestX = 0, bestO = 0;
+
             foreach (var position in positions)
             {
                 int currentX, currentY;
