@@ -137,7 +137,10 @@ namespace TicTacToe
                 {
                     bestMoveCount = bestX;
                 }
-                bestMoveCount = Math.Abs(bestX) > Math.Abs(bestO) ? bestX : bestO;
+                else
+                {
+                    bestMoveCount = Math.Abs(bestX) > Math.Abs(bestO) ? bestX : bestO;
+                }
             }
 
             Random r = new Random((int)DateTime.Now.Ticks);

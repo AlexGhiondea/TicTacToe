@@ -1,5 +1,5 @@
 ﻿// uncomment to have the computer play against itself
- #define COMPUTER_AGAINST_ITSELF
+// #define COMPUTER_AGAINST_ITSELF
 using System;
 using System.Collections.Generic;
 using System.ComponentModel;
@@ -245,6 +245,22 @@ namespace TicTacToe
             s_moves.Clear();
             CurrentPlayer = TicTacToeValue.x;
             Refresh();
+        }
+
+        private void exitToolStripMenuItem_Click(object sender, EventArgs e)
+        {
+            Close();
+        }
+
+        private void TicTacToe_FormClosing(object sender, FormClosingEventArgs e)
+        {
+            if (!_game.GameEnded)
+            {
+                if (MessageBox.Show("Are you sure?", "Game in progress", MessageBoxButtons.YesNo) != DialogResult.Yes)
+                {
+                    e.Cancel = true;
+                }
+            }
         }
     }
 }
