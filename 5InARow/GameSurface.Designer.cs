@@ -38,6 +38,7 @@
             this.menuStrip1 = new System.Windows.Forms.MenuStrip();
             this.gameToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
             this.newGameToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
+            this.label2 = new System.Windows.Forms.Label();
             this.menuStrip1.SuspendLayout();
             this.SuspendLayout();
             // 
@@ -49,7 +50,7 @@
             this.GameSurface.BackColor = System.Drawing.SystemColors.ControlLightLight;
             this.GameSurface.Location = new System.Drawing.Point(2, 62);
             this.GameSurface.Name = "GameSurface";
-            this.GameSurface.Size = new System.Drawing.Size(541, 360);
+            this.GameSurface.Size = new System.Drawing.Size(937, 690);
             this.GameSurface.TabIndex = 0;
             this.GameSurface.Paint += new System.Windows.Forms.PaintEventHandler(this.GameSurface_Paint);
             this.GameSurface.MouseDown += new System.Windows.Forms.MouseEventHandler(this.GameSurface_MouseDown);
@@ -78,7 +79,7 @@
             // 
             // btnUndo
             // 
-            this.btnUndo.Location = new System.Drawing.Point(457, 32);
+            this.btnUndo.Location = new System.Drawing.Point(853, 31);
             this.btnUndo.Name = "btnUndo";
             this.btnUndo.Size = new System.Drawing.Size(75, 23);
             this.btnUndo.TabIndex = 3;
@@ -88,7 +89,7 @@
             // 
             // button1
             // 
-            this.button1.Location = new System.Drawing.Point(364, 31);
+            this.button1.Location = new System.Drawing.Point(760, 31);
             this.button1.Name = "button1";
             this.button1.Size = new System.Drawing.Size(87, 23);
             this.button1.TabIndex = 4;
@@ -100,7 +101,7 @@
             // 
             this.rbPlayer.AutoSize = true;
             this.rbPlayer.Checked = true;
-            this.rbPlayer.Location = new System.Drawing.Point(224, 34);
+            this.rbPlayer.Location = new System.Drawing.Point(590, 34);
             this.rbPlayer.Name = "rbPlayer";
             this.rbPlayer.Size = new System.Drawing.Size(54, 17);
             this.rbPlayer.TabIndex = 5;
@@ -111,11 +112,11 @@
             // rbAI
             // 
             this.rbAI.AutoSize = true;
-            this.rbAI.Location = new System.Drawing.Point(284, 35);
+            this.rbAI.Location = new System.Drawing.Point(640, 34);
             this.rbAI.Name = "rbAI";
-            this.rbAI.Size = new System.Drawing.Size(35, 17);
+            this.rbAI.Size = new System.Drawing.Size(70, 17);
             this.rbAI.TabIndex = 6;
-            this.rbAI.Text = "AI";
+            this.rbAI.Text = "Computer";
             this.rbAI.UseVisualStyleBackColor = true;
             // 
             // menuStrip1
@@ -124,7 +125,7 @@
             this.gameToolStripMenuItem});
             this.menuStrip1.Location = new System.Drawing.Point(0, 0);
             this.menuStrip1.Name = "menuStrip1";
-            this.menuStrip1.Size = new System.Drawing.Size(544, 24);
+            this.menuStrip1.Size = new System.Drawing.Size(940, 24);
             this.menuStrip1.TabIndex = 7;
             this.menuStrip1.Text = "menuStrip1";
             // 
@@ -139,15 +140,25 @@
             // newGameToolStripMenuItem
             // 
             this.newGameToolStripMenuItem.Name = "newGameToolStripMenuItem";
-            this.newGameToolStripMenuItem.Size = new System.Drawing.Size(152, 22);
+            this.newGameToolStripMenuItem.Size = new System.Drawing.Size(131, 22);
             this.newGameToolStripMenuItem.Text = "New game";
             this.newGameToolStripMenuItem.Click += new System.EventHandler(this.newGameToolStripMenuItem_Click);
+            // 
+            // label2
+            // 
+            this.label2.AutoSize = true;
+            this.label2.Location = new System.Drawing.Point(520, 36);
+            this.label2.Name = "label2";
+            this.label2.Size = new System.Drawing.Size(64, 13);
+            this.label2.TabIndex = 8;
+            this.label2.Text = "Play against";
             // 
             // TicTacToe
             // 
             this.AutoScaleDimensions = new System.Drawing.SizeF(6F, 13F);
             this.AutoScaleMode = System.Windows.Forms.AutoScaleMode.Font;
-            this.ClientSize = new System.Drawing.Size(544, 423);
+            this.ClientSize = new System.Drawing.Size(940, 753);
+            this.Controls.Add(this.label2);
             this.Controls.Add(this.rbAI);
             this.Controls.Add(this.rbPlayer);
             this.Controls.Add(this.button1);
@@ -179,6 +190,7 @@
         private System.Windows.Forms.MenuStrip menuStrip1;
         private System.Windows.Forms.ToolStripMenuItem gameToolStripMenuItem;
         private System.Windows.Forms.ToolStripMenuItem newGameToolStripMenuItem;
+        private System.Windows.Forms.Label label2;
     }
 }
 

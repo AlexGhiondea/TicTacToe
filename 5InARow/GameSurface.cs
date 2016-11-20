@@ -1,4 +1,6 @@
-﻿using System;
+﻿// uncomment to have the computer play against itself
+ #define COMPUTER_AGAINST_ITSELF
+using System;
 using System.Collections.Generic;
 using System.ComponentModel;
 using System.Data;
@@ -9,6 +11,8 @@ using System.Reflection;
 using System.Text;
 using System.Threading.Tasks;
 using System.Windows.Forms;
+
+
 
 namespace TicTacToe
 {
@@ -143,7 +147,10 @@ namespace TicTacToe
             else
             {
                 ChangePlayer();
+
+#if COMPUTER_AGAINST_ITSELF
                 PlaceAIMove();
+#endif
             }
 
             Application.DoEvents();
@@ -152,11 +159,15 @@ namespace TicTacToe
 
         private void PlaceAIMove()
         {
+#if COMPUTER_AGAINST_ITSELF
             Task.Run(() =>
             {
-                var move = _game.GetAIMove(CurrentPlayer);
-                GameSurface.Invoke((MethodInvoker)delegate { PlaceMove(move); });
+#endif
+            var move = _game.GetAIMove(CurrentPlayer);
+            GameSurface.Invoke((MethodInvoker)delegate { PlaceMove(move); });
+#if COMPUTER_AGAINST_ITSELF
             });
+#endif
         }
 
         private void btnUndo_Click(object sender, EventArgs e)
@@ -230,7 +241,7 @@ namespace TicTacToe
 
         private void newGameToolStripMenuItem_Click(object sender, EventArgs e)
         {
-            _game.ResetGame();
+            _game = new TicTacToeGame(NeededForWin);
             s_moves.Clear();
             CurrentPlayer = TicTacToeValue.x;
             Refresh();

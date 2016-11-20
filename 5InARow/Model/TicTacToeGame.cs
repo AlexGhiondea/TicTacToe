@@ -23,6 +23,7 @@ namespace TicTacToe
         public void ResetGame()
         {
             nodes.Clear();
+            GameEnded = false;
         }
 
         public VisualNode AddMove(int x, int y, TicTacToeValue currentPlayer)
@@ -75,6 +76,11 @@ namespace TicTacToe
 
         public VisualNode GetAIMove(TicTacToeValue currentPlayer)
         {
+            if (nodes.Count == 0)
+            {
+                return AddMove(10, 10, currentPlayer);
+            }
+
             string myMove = string.Empty;
             // figure out all the empty nodes outthere.
             HashSet<string> positions = GetEmptyNeighBours();
@@ -150,7 +156,7 @@ namespace TicTacToe
             Action<VisualNode> Count = (n) =>
             {
                 // we should not count the original move as we count that ouside of this loop.
-                if (n.X == move.X && n.Y==move.Y)
+                if (n.X == move.X && n.Y == move.Y)
                 {
                     return;
                 }
@@ -238,6 +244,11 @@ namespace TicTacToe
                 {
                     move.countPerDirection++;
                 }
+                else
+                {
+                    move.endsWithOpponentMove = true;
+                }
+
                 // check to see if there is a next neighbor
                 string nk = Constants.MapDirectionToComputation[direction](node.X, node.Y);
                 if (!nodes.ContainsKey(nk))
@@ -264,7 +275,7 @@ namespace TicTacToe
 
             // this is the case where we have something like: o x _ x x o 
             // there is no point to put an o in there as that can never ever be a winning move from x
-            if (count == 3 && (moveFirstDir.endsWithOpponentMove && moveSecondDir.endsWithOpponentMove))
+            if (count <= 3 && (moveFirstDir.endsWithOpponentMove && moveSecondDir.endsWithOpponentMove))
                 count = 0;
 
             if (count >= 4)
