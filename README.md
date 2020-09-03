@@ -5,5 +5,5 @@ You can play against another person or against the computer.
 
 Install it from [here](https://installeralexghi.blob.core.windows.net/installer/installer/TicTacToe/TicTacToe.application)
 
-![screenshot](src/TicTacToe/images/screenshot.png)
+![screenshot](/images/screenshot.png)
 
